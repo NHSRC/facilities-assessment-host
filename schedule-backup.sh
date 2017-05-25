@@ -12,3 +12,4 @@ echo "0 0 3 * * ? sh ${SCRIPT_DIR}/metabase/take-db-backup.sh" >> dbbackupcron
 #install new cron file
 crontab dbbackupcron
 rm dbbackupcron
+crontab -l
