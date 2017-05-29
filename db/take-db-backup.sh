@@ -4,6 +4,6 @@ echo 'SCRIPT_DIR'
 echo ${SCRIPT_DIR}
 
 DAYNAME=$(date +%a)
-pg_dump facilities_assessment > ${SCRIPT_DIR}/backup/facilities_asessment_dump_${DAYNAME}.sql
-pg_dump facilities_assessment_cg > ${SCRIPT_DIR}/backup/facilities_asessment_cg_dump_${DAYNAME}.sql
-pg_dump facilities_assessment > ${SCRIPT_DIR}/backup/facilities_asessment_metabase_dump_${DAYNAME}.sql
+echo "[backup] Backing up postgres databases $(date)" >> ${SCRIPT_DIR}/log/backup.log 2>&1 &
+pg_dump facilities_assessment > ${SCRIPT_DIR}/backup/facilities_asessment_dump_${DAYNAME}.sql >> ${SCRIPT_DIR}/log/backup.log 2>&1 &
+pg_dump facilities_assessment_cg > ${SCRIPT_DIR}/backup/facilities_asessment_cg_dump_${DAYNAME}.sql >> ${SCRIPT_DIR}/log/backup.log 2>&1 &
