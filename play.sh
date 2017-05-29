@@ -1,1 +1,2 @@
-echo "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+BASEDIR=$(dirname "$0")
+echo "$BASEDIR"
