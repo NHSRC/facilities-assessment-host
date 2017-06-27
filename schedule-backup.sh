@@ -13,3 +13,5 @@ echo "0 0 3 * * ? ${SCRIPT_DIR}/metabase/take-db-backup.sh" >> dbbackupcron
 crontab dbbackupcron
 rm dbbackupcron
 crontab -l
+
+sudo service cron reload
