@@ -35,13 +35,10 @@ jss_mp_db_pull_and_restore:
 	make restore_new_db database=facilities_asessment_cg backup=facilities_asessment_cg_dump_$(DAY).sql
 
 jss_mp_start_server:
-	cd app-servers/mp
-	nohup java -jar facilities-assessment-server-0.0.1-SNAPSHOT.jar > log/facilities_assessment.log 2>&1 &
+	cd app-servers/mp && nohup java -jar facilities-assessment-server-0.0.1-SNAPSHOT.jar > log/facilities_assessment.log 2>&1 &
 
 jss_cg_start_server:
-	cd app-servers/cg
-	nohup java -jar facilities-assessment-server-0.0.1-SNAPSHOT.jar > log/facilities_assessment.log 2>&1 &
+	cd app-servers/cg && nohup java -jar facilities-assessment-server-0.0.1-SNAPSHOT.jar > log/facilities_assessment.log 2>&1 &
 
 start_metabase:
-	cd metabase
-	nohup java -jar metabase.jar >> log/metabase.log 2>&1 &
+	cd metabase && nohup java -jar metabase.jar >> log/metabase.log 2>&1 &
