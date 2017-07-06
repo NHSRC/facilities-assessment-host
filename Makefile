@@ -4,7 +4,8 @@ jss_mp_start_server:
 	cd app-servers/mp && nohup java -jar facilities-assessment-server-0.0.1-SNAPSHOT.jar > log/facilities_assessment.log 2>&1 &
 
 jss_take_all_db_backup:
-	cd db/
+	sh db/take-db-backup.sh
+	sh metabase/take-db-backup.sh
 
 # Getting stuff from JSS Production
 jss_pull_all_db:
