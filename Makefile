@@ -48,16 +48,17 @@ jss_cg_push_server_jar:
 	scp ../facilities-assessment-server/build/libs/$(jar_file) nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/app-servers/cg
 
 # JSS PRODUCTION SERVER
-
-
 # Common to all environments
+stop_metabase:
+	-pkill -f 'java -jar metabase.jar'
+
 start_metabase:
 	cd metabase && nohup java -jar metabase.jar >> log/metabase.log 2>&1 &
 
 restore_new_db:
 	-psql postgres -c 'drop database $(database)'
 	psql postgres -c 'create database $(database) with owner nhsrc'
-	psql facilities_assessment_nhsrc -c 'create extension if not exists "uuid-ossp"';
+	psql $(database) -c 'create extension if not exists "uuid-ossp"';
 	psql $(database) < db/backup/$(backup)
 
 reset_db_nhsrc:
