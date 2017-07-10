@@ -1,7 +1,8 @@
+jar_file=facilities-assessment-server-0.0.1-SNAPSHOT.jar
+
 # JSS SPECIFIC TASKS
 mp_db=new_facilitiess_assessment_mp
 cg_db=facilities_assessment_cg
-jar_file=facilities-assessment-server-0.0.1-SNAPSHOT.jar
 
 # ALL JSS ENVIRONMENTS
 jss_mp_stop_server:
@@ -81,8 +82,19 @@ nhsrc_assessment_tools: reset_db_nhsrc
 
 nhsrc_all: nhsrc_assessment_tools nhsrc_region_data
 
-# LOCAL
-jss_cg_get_server_jar:
-	cd ../facilities-assessment-server && make binary
-	cp ../facilities-assessment-server/build/libs/$(jar_file) app-servers
+# LOCAL/DEVELOPMENT
+qa_db=facilities_assessment_cg
 
+qa_restore_db_from:
+	make restore_new_db database=$(qa_db) backup=$(BACKUP).sql
+
+qa_get_server_jar:
+	cd ../facilities-assessment-server && make binary
+	cp ../facilities-assessment-server/build/libs/$(jar_file) app-servers/qa
+
+qa_stop_server:
+	-pkill -f 'database=$(qa_db)'
+
+qa_start_server: qa_stop_server
+	cd app-servers/qa && nohup java -jar $(jar_file) --database=$(qa_db) --server.port=5000 > log/facilities_assessment.log 2>&1 &
+	tail -f app-servers/qa/log/facilities_assessment.log
