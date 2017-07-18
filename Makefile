@@ -115,3 +115,6 @@ qa_start_server: qa_stop_server
 
 create_release: _make_binary
 	cp ../facilities-assessment-server/build/libs/$(jar_file) releases/$(client)/$(release)
+
+jss_cg_deploy_server:
+	make _get_server_jar env=cg
