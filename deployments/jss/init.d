@@ -5,14 +5,14 @@ HOME=/home/nhsrc/facilities-assessment-host
 
 case $1 in
 start)
-        cd ${HOME} && sh metabase/run.sh
-        cd ${HOME} && sh app-servers/cg/run.sh
-        cd ${HOME} && sh app-servers/mp/run.sh
+        cd ${HOME} && make start_metabase
+        cd ${HOME} && make jss_cg_start_server
+        cd ${HOME} && make jss_mp_start_server
         ;;
 stop)
-        pkill -f 'java -jar metabase.jar'
-        pkill -f 'database=new_facilitiess_assessment_mp'
-        pkill -f 'database=facilities_assessment_cg'
+        cd ${HOME} && make stop_metabase
+        cd ${HOME} && make jss_cg_stop_server
+        cd ${HOME} && make jss_mp_stop_server
         ;;
 restart)
         stop
