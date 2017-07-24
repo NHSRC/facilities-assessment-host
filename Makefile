@@ -1,8 +1,17 @@
 jar_file=facilities-assessment-server-0.0.1-SNAPSHOT.jar
+metabase_db_file=metabase.db.mv.db
 
 # JSS SPECIFIC TASKS
 mp_db=new_facilitiess_assessment_mp
 cg_db=facilities_assessment_cg
+nhsrc_db=$(facilities_assessment_nhsrc)
+
+restore_new_db:
+	psql postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$(database)' AND pid <> pg_backend_pid()"
+	-psql postgres -c 'drop database $(database)'
+	psql postgres -c 'create database $(database) with owner nhsrc'
+	psql $(database) -c 'create extension if not exists "uuid-ossp"';
+	psql $(database) < db/backup/$(backup)
 
 # ALL JSS ENVIRONMENTS
 jss_mp_stop_server:
@@ -27,6 +36,9 @@ jss_take_all_db_backup:
 	ls -lt db/backup/
 	ls -lt metabase/backup/
 
+jss_restore_mp_db:
+	make restore_new_db DAY=$(DAY) database=$(mp_db) backup=$(mp_db)_$(DAY).sql
+
 # PULL FROM JSS PRODUCTION
 jss_pull_and_restore_all_db: jss_pull_mp_db jss_pull_cg_db jss_pull_and_restore_metabase_db
 
@@ -34,18 +46,14 @@ jss_pull_mp_db:
 	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/db/backup/$(mp_db)_$(DAY).sql db/backup/
 
 jss_pull_cg_db:
-	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/db/backup/facilities_assessment_cg_$(DAY).sql db/backup/
+	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/db/backup/$(cg_db)_$(DAY).sql db/backup/
 
 jss_pull_and_restore_metabase_db:
-	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/metabase/backup/metabase.db.mv.db_$(DAY) metabase/metabase.db.mv.db
-
-jss_restore_all_db:
-	make restore_new_db database=facilities_assessment_cg backup=facilities_assessment_cg_$(DAY).sql
-	make restore_new_db database=$(mp_db) backup=$(mp_db)_$(DAY).sql
+	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/metabase/backup/$(metabase_db_file)_$(DAY) metabase/$(metabase_db_file)
 
 # PUSH TO JSS PRODUCTION
 jss_push_metabase_db:
-	scp metabase/metabase.db.mv.db nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/metabase/
+	scp metabase/$(metabase_db_file) nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/metabase/
 
 jss_cg_push_server_jar:
 	scp ../facilities-assessment-server/build/libs/$(jar_file) nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/app-servers/cg
@@ -58,32 +66,30 @@ stop_metabase:
 start_metabase:
 	cd metabase && nohup java -jar metabase.jar >> log/metabase.log 2>&1 &
 
-restore_new_db:
-	psql postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$(database)' AND pid <> pg_backend_pid()"
-	-psql postgres -c 'drop database $(database)'
-	psql postgres -c 'create database $(database) with owner nhsrc'
-	psql $(database) -c 'create extension if not exists "uuid-ossp"';
-	psql $(database) < db/backup/$(backup)
+jss_restore_all_db:
+	make restore_new_db database=$(cg_db) backup=$(cg_db)_$(DAY).sql
+	make restore_new_db database=$(mp_db) backup=$(mp_db)_$(DAY).sql
 
+# NHSRC
 reset_db_nhsrc:
-	-psql postgres -c 'drop database facilities_assessment_nhsrc';
-	-psql postgres -c 'create database facilities_assessment_nhsrc with owner nhsrc';
-	-psql facilities_assessment_nhsrc -c 'create extension if not exists "uuid-ossp"';
-	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/facilities_assessment_nhsrc -schemas=public clean
-	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/facilities_assessment_nhsrc -schemas=public -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
+	-psql postgres -c 'drop database $(nhsrc_db)';
+	-psql postgres -c 'create database $(nhsrc_db) with owner nhsrc';
+	-psql $(nhsrc_db) -c 'create extension if not exists "uuid-ossp"';
+	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(nhsrc_db) -schemas=public clean
+	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(nhsrc_db) -schemas=public -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
 
 nhsrc_region_data:
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc facilities_assessment_nhsrc < ../reference-data/nhsrc/regions/regionData.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/regions/regionData.sql
 
 nhsrc_assessment_tools: reset_db_nhsrc
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc facilities_assessment_nhsrc < db/instances/nhsrc/assessment_tools.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc facilities_assessment_nhsrc < ../reference-data/nhsrc/output/NHSRC_NQAS_DH.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc facilities_assessment_nhsrc < ../reference-data/nhsrc/output/NHSRC_NQAS_CHC.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc facilities_assessment_nhsrc < ../reference-data/nhsrc/output/NHSRC_NQAS_PHC.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc facilities_assessment_nhsrc < ../reference-data/nhsrc/output/NHSRC_NQAS_UPHC.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc facilities_assessment_nhsrc < ../reference-data/nhsrc/output/NHSRC_KK_DH_SDH_CHC.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc facilities_assessment_nhsrc < ../reference-data/nhsrc/output/NHSRC_KK_PHC.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc facilities_assessment_nhsrc < ../reference-data/nhsrc/output/NHSRC_KK_UPHC_APHC.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < db/instances/nhsrc/assessment_tools.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/NHSRC_NQAS_DH.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/NHSRC_NQAS_CHC.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/NHSRC_NQAS_PHC.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/NHSRC_NQAS_UPHC.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/NHSRC_KK_DH_SDH_CHC.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/NHSRC_KK_PHC.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/NHSRC_KK_UPHC_APHC.sql
 
 nhsrc_all: nhsrc_assessment_tools nhsrc_region_data
 
@@ -118,3 +124,9 @@ create_release: _make_binary
 
 jss_cg_deploy_server:
 	make _get_server_jar env=cg
+
+jss_release_3:
+	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(mp_db) -schemas=public -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(mp_db) < deployments/jss/mp/v0.3.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(mp_db) < ../reference-data/jss/mp/checklists/CHC.sql
+	find ../reference-data/jss/mp/assessments/output/ -name *verify*.sql -exec psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(mp_db) -f {} \;
