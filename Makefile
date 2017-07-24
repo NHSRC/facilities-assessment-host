@@ -20,12 +20,16 @@ jss_mp_stop_server:
 jss_cg_stop_server:
 	-pkill -f 'database=$(cg_db)'
 
-jss_mp_start_server: jss_mp_stop_server
+jss_mp_start_server:
 	cd app-servers/mp && nohup java -jar $(jar_file) --database=$(mp_db) --server.port=5000 > log/facilities_assessment.log 2>&1 &
+
+jss_mp_start_server_tail: jss_mp_start_server
 	tail -f app-servers/mp/log/facilities_assessment.log
 
 jss_cg_start_server:
 	cd app-servers/cg && nohup java -jar $(jar_file) --database=facilities_assessment_cg --server.port=6001 > log/facilities_assessment.log 2>&1 &
+
+jss_cg_start_server_tail: jss_cg_start_server
 	tail -f app-servers/cg/log/facilities_assessment.log
 
 jss_mp_restart_server: jss_mp_stop_server get_server_jar jss_mp_start_server
