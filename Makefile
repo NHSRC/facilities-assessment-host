@@ -50,10 +50,10 @@ jss_restore_cg_db:
 jss_pull_and_restore_all_db: jss_pull_mp_db jss_pull_cg_db jss_pull_and_restore_metabase_db
 
 jss_pull_mp_db:
-	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/db/backup/$(mp_db)_$(DAY).sql db/backup/
+	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/db/backup/$(mp_db)_$(DAY).sql db/backup/$(mp_db)_$(DAY)_Prod.sql
 
 jss_pull_cg_db:
-	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/db/backup/$(cg_db)_$(DAY).sql db/backup/
+	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/db/backup/$(cg_db)_$(DAY).sql db/backup/$(cg_db)_$(DAY)_Prod.sql
 
 jss_pull_and_restore_metabase_db:
 	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/metabase/backup/$(metabase_db_file)_$(DAY) metabase/$(metabase_db_file)
@@ -101,6 +101,9 @@ nhsrc_assessment_tools: reset_db_nhsrc
 nhsrc_all: nhsrc_assessment_tools nhsrc_region_data
 
 # LOCAL/DEVELOPMENT
+_flyway_migrate:
+	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(database) -schemas=public -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
+
 _get_server_jar:
 	cd ../facilities-assessment-server && make binary
 	cp ../facilities-assessment-server/build/libs/$(jar_file) app-servers/$(env)
@@ -131,6 +134,13 @@ create_release: _make_binary
 
 jss_cg_deploy_server:
 	make _get_server_jar env=cg
+
+jss_try_release_3_local:
+	make restore_new_db database=$(mp_db) backup=new_facilitiess_assessment_mp_WED_Prod.sql
+	make restore_new_db database=$(cg_db) backup=facilities_assessment_cg_Wed_Prod.sql
+	make _flyway_migrate database=$(mp_db)
+	make _flyway_migrate database=$(cg_db)
+	make jss_release_3
 
 jss_release_3:
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(mp_db) < deployments/jss/v0.3_dakshata.sql

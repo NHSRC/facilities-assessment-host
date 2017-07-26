@@ -31,8 +31,16 @@ ALTER TABLE public.area_of_concern ADD COLUMN self_id INT DEFAULT 0;
 INSERT INTO public.area_of_concern (name, reference, assessment_tool_id, self_id) SELECT aoc.name, aoc.reference, at.id, aoc.id from mp.area_of_concern aoc, public.assessment_tool at, mp.assessment_tool mpat WHERE aoc.assessment_tool_id = mpat.id AND mpat.name = at.name;
 
 ALTER TABLE public.standard ADD COLUMN self_id INT DEFAULT 0;
-INSERT INTO public.standard (name, reference, area_of_concern_id, assessment_tool_id) SELECT aoc.name, aoc.reference, at.id, aoc.id from mp.standard std, public.assessment_tool at, mp.assessment_tool mpat WHERE aoc.assessment_tool_id = mpat.id AND mpat.name = at.name;
+INSERT INTO public.standard (name, reference, area_of_concern_id, assessment_tool_id, self_id) SELECT std.name, std.reference, at.id, aoc.id, std.id from mp.standard std, public.assessment_tool at, mp.assessment_tool mpat, public.area_of_concern aoc WHERE std.assessment_tool_id = mpat.id AND mpat.name = at.name AND aoc.self_id = std.area_of_concern_id;
 
+ALTER TABLE public.measurable_element ADD COLUMN self_id INT DEFAULT 0;
+INSERT INTO public.measurable_element (name, reference, standard_id, assessment_tool_id, self_id) SELECT me.name, me.reference, std.id, at.id, me.id from mp.measurable_element me, public.assessment_tool at, mp.assessment_tool mpat, public.standard std WHERE std.assessment_tool_id = mpat.id AND mpat.name = at.name AND std.self_id = me.standard_id;
+
+ALTER TABLE public.checkpoint ADD COLUMN self_id INT DEFAULT 0;
+INSERT INTO public.checkpoint (name, means_of_verification, is_default, am_observation, am_staff_interview, am_patient_interview, am_record_review, sort_order, score_levels, is_optional, measurable_element_id, checklist_id, self_id) SELECT cp.name, cp.means_of_verification, cp.is_default, cp.am_observation, cp.am_staff_interview, cp.am_patient_interview, cp.am_record_review, cp.sort_order, cp.score_levels, cp.is_optional, me.id, cl.id, cp.id from mp.checkpoint cp, public.checklist cl, public.measurable_element me WHERE cl.self_id = cp.checklist_id AND me.self_id = cp.measurable_element_id;
+
+ALTER TABLE public.facility_assessment ADD COLUMN self_id INT DEFAULT 0;
+INSERT INTO public.facility_assessment (facility_id, assessment_tool_id, end_date, series_name) SELECT me.name, me.reference, std.id, at.id, me.id from mp.measurable_element me, public.assessment_tool at, mp.assessment_tool mpat, public.standard std WHERE std.assessment_tool_id = mpat.id AND mpat.name = at.name AND std.self_id = me.standard_id;
 
 
 -- DROP SELF_ID columns
