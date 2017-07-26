@@ -43,6 +43,9 @@ jss_take_all_db_backup:
 jss_restore_mp_db:
 	make restore_new_db DAY=$(DAY) database=$(mp_db) backup=$(mp_db)_$(DAY).sql
 
+jss_restore_cg_db:
+	make restore_new_db DAY=$(DAY) database=$(cg_db) backup=$(cg_db)_$(DAY).sql
+
 # PULL FROM JSS PRODUCTION
 jss_pull_and_restore_all_db: jss_pull_mp_db jss_pull_cg_db jss_pull_and_restore_metabase_db
 
@@ -130,7 +133,23 @@ jss_cg_deploy_server:
 	make _get_server_jar env=cg
 
 jss_release_3:
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(mp_db) < deployments/jss/v0.3_dakshata.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) < deployments/jss/v0.3_dakshata.sql
+
+#change the location of where to find the migration scripts. this may need to be packaged in this host project
+jss_release_4:
 	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(mp_db) -schemas=public -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(mp_db) < deployments/jss/mp/v0.3.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(mp_db) < ../reference-data/jss/mp/checklists/CHC.sql
-	find ../reference-data/jss/mp/assessments/output/ -name *verify*.sql -exec psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(mp_db) -f {} \;
+	psql -v ON_ERROR_STOP=1 --echo-all -U$(superuser) $(cg_db) -c 'ALTER SCHEMA public owner TO nhsrc';
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) -c 'alter schema public rename to original_public';
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) -c 'create schema public';
+	psql -v ON_ERROR_STOP=1 --echo-all -U$(superuser) $(cg_db) -c 'ALTER EXTENSION "uuid-ossp" SET SCHEMA public';
+	pg_dump --format custom --file db/backup/temp_mp.sql --schema "public" $(mp_db);
+	pg_restore --dbname $(cg_db) db/backup/temp_mp.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) -c 'alter schema public rename to mp';
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) -c 'alter schema original_public rename to public';
+	psql -v ON_ERROR_STOP=1 --echo-all -U$(superuser) $(cg_db) -c 'ALTER EXTENSION "uuid-ossp" SET SCHEMA public';
+	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(cg_db) -schemas=public -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) < deployments/jss/v0.4.sql
+#	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(mp_db) < deployments/jss/mp/v0.3.sql
+#	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(mp_db) < ../reference-data/jss/mp/checklists/CHC.sql
+#	find ../reference-data/jss/mp/assessments/output/ -name *verify*.sql -exec psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(mp_db) -f {} \;

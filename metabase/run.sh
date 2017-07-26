@@ -1,1 +1,0 @@
-nohup java -jar metabase.jar >> log/metabase.log 2>&1 &
