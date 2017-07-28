@@ -4,7 +4,7 @@ metabase_db_file=metabase.db.mv.db
 # JSS SPECIFIC TASKS
 mp_db=new_facilitiess_assessment_mp
 cg_db=facilities_assessment_cg
-nhsrc_db=$(facilities_assessment_nhsrc)
+nhsrc_db := facilities_assessment_nhsrc
 
 restore_new_db:
 	psql postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$(database)' AND pid <> pg_backend_pid()"
@@ -79,8 +79,8 @@ jss_restore_all_db:
 
 # NHSRC
 reset_db_nhsrc:
-	-psql postgres -c 'drop database $(nhsrc_db)';
-	-psql postgres -c 'create database $(nhsrc_db) with owner nhsrc';
+	-psql -Unhsrc postgres -c 'drop database $(nhsrc_db)';
+	-psql -Unhsrc postgres -c 'create database $(nhsrc_db) with owner nhsrc';
 	-psql $(nhsrc_db) -c 'create extension if not exists "uuid-ossp"';
 	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(nhsrc_db) -schemas=public clean
 	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(nhsrc_db) -schemas=public -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
