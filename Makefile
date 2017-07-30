@@ -103,7 +103,7 @@ nhsrc_all: nhsrc_assessment_tools nhsrc_region_data
 
 # LOCAL/DEVELOPMENT
 _flyway_migrate:
-	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(database) -schemas=public -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
+	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(database) -schemas=$(schema) -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
 
 _get_server_jar:
 	cd ../facilities-assessment-server && make binary
@@ -139,17 +139,22 @@ jss_cg_deploy_server:
 jss_try_release_3_local:
 	make restore_new_db database=$(mp_db) backup=new_facilitiess_assessment_mp_WED_Prod.sql
 	make restore_new_db database=$(cg_db) backup=facilities_assessment_cg_Wed_Prod.sql
-	make _flyway_migrate database=$(mp_db)
-	make _flyway_migrate database=$(cg_db)
+	make _flyway_migrate database=$(mp_db) schema=public
+	make _flyway_migrate database=$(cg_db) schema=public
 	make jss_release_3
 
 jss_release_3:
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(mp_db) < deployments/jss/v0.3_facility_data.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(mp_db) < deployments/jss/v0.3_dakshata.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) < deployments/jss/v0.3_dakshata.sql
 
 #change the location of where to find the migration scripts. this may need to be packaged in this host project
 jss_release_4:
-	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(mp_db) -schemas=public -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
+	# bring all db to the latest version
+	make _flyway_migrate database=$(mp_db) schema=public
+	make _flyway_migrate database=$(cg_db) schema=public
+
+	# copy jss db to main db as different schema
 	psql -v ON_ERROR_STOP=1 --echo-all -U$(superuser) $(cg_db) -c 'ALTER SCHEMA public owner TO nhsrc';
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) -c 'alter schema public rename to original_public';
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) -c 'create schema public';
@@ -159,8 +164,28 @@ jss_release_4:
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) -c 'alter schema public rename to mp';
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) -c 'alter schema original_public rename to public';
 	psql -v ON_ERROR_STOP=1 --echo-all -U$(superuser) $(cg_db) -c 'ALTER EXTENSION "uuid-ossp" SET SCHEMA public';
-	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(cg_db) -schemas=public -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) < deployments/jss/v0.4.sql
-#	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(mp_db) < deployments/jss/mp/v0.3.sql
-#	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(mp_db) < ../reference-data/jss/mp/checklists/CHC.sql
-#	find ../reference-data/jss/mp/assessments/output/ -name *verify*.sql -exec psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(mp_db) -f {} \;
+
+	# fix jss data before we do the merge
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) < deployments/jss/v0.4-fixjssdata.sql
+
+	# copy over data from jss(mp) schema to public schema
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) < deployments/jss/v0.4-mergedb.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) -c 'drop schema mp cascade'
+
+#	# Create new schema for mp, this time for importing MP (not JSS) checklists (not assessments)
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) -c 'create schema mp';
+	make _flyway_migrate database=$(cg_db) schema=mp
+	psql -v ON_ERROR_STOP=1 --echo-all "dbname=$(cg_db) options=--search_path=mp user=nhsrc" -a -f ../reference-data/jss/mp/checklists/CHC.sql
+	psql -v ON_ERROR_STOP=1 --echo-all "dbname=$(cg_db) options=--search_path=mp user=nhsrc" -a -f ../reference-data/jss/mp/checklists/DH.sql
+	psql -v ON_ERROR_STOP=1 --echo-all "dbname=$(cg_db) options=--search_path=mp user=nhsrc" -a -f deployments/jss/v0.4-update-state.sql
+#	find ../reference-data/jss/mp/assessments/output/ -name *verify_checklists*.sql -exec psql -v ON_ERROR_STOP=1 --echo-all "dbname=$(cg_db) options=--search_path=mp user=nhsrc" -a -f {} \; > log/verifyChecklists.log
+#	find ../reference-data/jss/mp/assessments/output/ -name *verify_checkpoints*.sql -exec psql -v ON_ERROR_STOP=1 --echo-all "dbname=$(cg_db) options=--search_path=mp user=nhsrc" -a -f {} \; > log/verifyCheckpoints.log
+
+	# copy over data from mp schema to public schema
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) < deployments/jss/v0.4-mergedb.sql
+#	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) -c 'drop schema mp cascade'
+#
+#	# Import assessments
+	find ../reference-data/jss/mp/assessments/output/ -name *26-12-2016*.sql -exec psql -v ON_ERROR_STOP=1 --echo-all "dbname=$(cg_db) options=--search_path=public user=nhsrc" -a -f {} \; > log/assessmentImport.log
+
+jss_try_release_4_local: jss_try_release_3_local jss_release_4

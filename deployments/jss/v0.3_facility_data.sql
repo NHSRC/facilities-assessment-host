@@ -16,10 +16,3 @@ INSERT INTO facility (name, district_id, facility_type_id) VALUES ('DH Sidhi', (
 
 INSERT INTO facility (name, district_id, facility_type_id) VALUES ('CHC Pali', (SELECT id from district WHERE district.name = 'Umaria'), (SELECT id FROM facility_type WHERE facility_type.name = 'Community Health Center'));
 INSERT INTO facility (name, district_id, facility_type_id) VALUES ('DH Umaria', (SELECT id from district WHERE district.name = 'Umaria'), (SELECT id FROM facility_type WHERE facility_type.name = 'District Hospital'));
-
-UPDATE checklist SET assessment_tool_id = (SELECT id from assessment_tool WHERE assessment_tool.name = 'District Hospital (DH)');
-DELETE from checklist where name = 'Department Wise';
-DELETE from department where name = 'Department Wise';
-
-INSERT INTO department (name) VALUES ('Blood Bank');
-INSERT INTO checklist (name, department_id, assessment_tool_id) VALUES ('Blood Bank', (SELECT id from department WHERE department.name = 'Blood Bank'), (SELECT id from assessment_tool WHERE name = 'District Hospital (DH)'));
