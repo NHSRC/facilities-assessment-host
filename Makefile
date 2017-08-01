@@ -188,4 +188,7 @@ jss_release_4:
 #	# Import assessments
 	find ../reference-data/jss/mp/assessments/output/ -name *26-12-2016*.sql -exec psql -v ON_ERROR_STOP=1 --echo-all "dbname=$(cg_db) options=--search_path=public user=nhsrc" -a -f {} \; > log/assessmentImport.log
 
-jss_try_release_4_local: jss_try_release_3_local jss_release_4
+jss_try_release_4_local:
+	make restore_new_db database=$(cg_db) backup=facilities_assessment_cg_LOCAL.sql
+	make restore_new_db database=$(mp_db) backup=new_facilitiess_assessment_mp_LOCAL.sql
+	make jss_release_4 superuser=$(superuser)

@@ -1,6 +1,7 @@
 --- MOVE MP TABLE DATA TO SINGLE DATABASE
 ALTER TABLE public.state ADD COLUMN self_id INT DEFAULT 0;
 INSERT INTO public.state (name, self_id) SELECT name, id from mp.state ON CONFLICT DO NOTHING;
+UPDATE public.state SET self_id = (SELECT mp.state.id from mp.state WHERE mp.state.name = 'Madhya Pradesh') WHERE public.state.name = 'Madhya Pradesh';
 
 ALTER TABLE public.district ADD COLUMN self_id INT DEFAULT 0;
 INSERT INTO public.district (name, state_id, self_id) SELECT d.name, s.id, d.id from mp.district d, public.state s WHERE d.state_id = s.self_id;
