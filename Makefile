@@ -5,6 +5,7 @@ metabase_db_file=metabase.db.mv.db
 mp_db=new_facilitiess_assessment_mp
 cg_db=facilities_assessment_cg
 nhsrc_db := facilities_assessment_nhsrc
+superuser := $(shell id -un)
 
 restore_new_db:
 	psql postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$(database)' AND pid <> pg_backend_pid()"
