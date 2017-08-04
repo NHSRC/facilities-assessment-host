@@ -1,6 +1,46 @@
-insert into checkpoint_score (facility_assessment_id, checkpoint_id, checklist_id, score, remarks) values ((select id from facility_assessment where assessment_tool_id = (select id from assessment_tool where name = 'Community Health Center (CHC)') and start_date = '2016-12-26' and facility_id = (select id from facility where name = 'CHC Pali')), (select * from checkpoint, measurable_element, standard, area_of_concern, checklist_area_of_concern, checklist, assessment_tool where checkpoint.measurable_element_id = measurable_element.id and measurable_element.reference = 'A2.1' and measurable_element.standard_id = standard.id and standard.reference = 'A2' and standard.area_of_concern_id = area_of_concern.id and area_of_concern.reference = 'A' and area_of_concern.assessment_tool_id = assessment_tool.id AND assessment_tool.name = 'Community Health Center (CHC)' and checkpoint.name = 'Availability of Post partum sterilization services' and checklist.id = checklist_area_of_concern.checklist_id and area_of_concern.id = checklist_area_of_concern.area_of_concern_id and checklist.name = 'OPD' and checklist.state_id = (SELECT id from state where name = 'Madhya Pradesh')), (select id from checklist where name = 'OPD' and state_id = (select id from state where name = 'Madhya Pradesh') and assessment_tool_id = (select id from assessment_tool where name = 'Community Health Center (CHC)')), 2, '');
+SELECT count(checkpoint.id)
+FROM checkpoint, facility, facility_assessment, assessment_tool, checklist
+WHERE
+  facility.id = facility_assessment.facility_id AND facility_assessment.assessment_tool_id = assessment_tool.id AND assessment_tool.id = checklist.assessment_tool_id AND
+  checkpoint.checklist_id = checklist.id AND facility.id = 3;
 
-SELECT * from state ORDER BY id;
-SELECT assessment_tool_id, state_id, name from checklist WHERE name = 'OPD';
+SELECT count(checkpoint_score.checkpoint_id)
+FROM checkpoint_score, facility, facility_assessment, assessment_tool, checklist
+WHERE
+  facility.id = facility_assessment.facility_id AND facility_assessment.assessment_tool_id = assessment_tool.id AND assessment_tool.id = checklist.assessment_tool_id AND
+  checkpoint_score.checklist_id = checklist.id AND checkpoint_score.facility_assessment_id = facility_assessment.id AND facility.id = 3;
 
-select * from checkpoint, measurable_element, standard, area_of_concern, checklist_area_of_concern, checklist, assessment_tool where checkpoint.measurable_element_id = measurable_element.id and measurable_element.reference = 'A2.1' and measurable_element.standard_id = standard.id and standard.reference = 'A2' and standard.area_of_concern_id = area_of_concern.id and area_of_concern.reference = 'A' and area_of_concern.assessment_tool_id = assessment_tool.id AND assessment_tool.name = 'Community Health Center (CHC)' and checkpoint.name = 'Availability of Post partum sterilization services' and checklist.id = checklist_area_of_concern.checklist_id and area_of_concern.id = checklist_area_of_concern.area_of_concern_id and checklist.name = 'OPD' and checklist.state_id = (SELECT id from state where name = 'Madhya Pradesh') AND checkpoint.checklist_id = checklist.id;
+SELECT count(*)
+FROM checkpoint_score
+WHERE facility_assessment_id = 4;
+
+SELECT *
+FROM facility_assessment;
+
+-- FOR METABASE
+SELECT
+  Checkpoints.State,
+  Checkpoints.Facility,
+  Checkpoints.Checklist,
+  count(Checkpoints.CheckpointId) Unfilled
+FROM
+  (SELECT
+     state.name State,
+     facility.name  Facility,
+     checklist.name Checklist,
+     checkpoint.id  CheckpointId
+   FROM checkpoint, facility, facility_assessment, assessment_tool, checklist, state
+   WHERE
+     facility.id = facility_assessment.facility_id AND facility_assessment.assessment_tool_id = assessment_tool.id AND assessment_tool.id = checklist.assessment_tool_id
+     AND checkpoint.checklist_id = checklist.id AND state.id = checklist.state_id) AS Checkpoints LEFT OUTER JOIN
+  (SELECT
+     checkpoint_score.checklist_id,
+     checkpoint_score.checkpoint_id
+   FROM checkpoint_score, facility, facility_assessment, assessment_tool, checklist, state
+   WHERE
+     facility.id = facility_assessment.facility_id AND facility_assessment.assessment_tool_id = assessment_tool.id AND assessment_tool.id = checklist.assessment_tool_id
+     AND checkpoint_score.checklist_id = checklist.id AND checkpoint_score.facility_assessment_id = facility_assessment.id AND state.id = checklist.state_id AND
+     state.id = 1) AS CheckpointScores
+    ON Checkpoints.CheckpointId = CheckpointScores.checkpoint_id
+WHERE CheckpointScores.checkpoint_id IS NULL
+GROUP BY Checkpoints.State, Checkpoints.Facility, Checkpoints.Checklist ORDER BY Checkpoints.State, Checkpoints.Facility, Checkpoints.Checklist;
