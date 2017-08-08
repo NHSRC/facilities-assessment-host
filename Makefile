@@ -137,6 +137,13 @@ create_release: _make_binary
 jss_cg_deploy_server:
 	make _get_server_jar env=cg
 
+jss_cg_assessment_tools:
+	psql -Unhsrc facilities_assessment < src/test/resources/db/migration/jss/CGDeployment.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc facilities_assessment < ../checklists/jss/cg/CG-NQAS-DH-English/output.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc facilities_assessment < ../checklists/jss/cg/output.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc facilities_assessment < ../checklists/jss/cg/output-bsu.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc facilities_assessment < ../checklists/jss/cg/output-bsu-inputs.sql
+
 jss_try_release_3_local:
 	make restore_new_db database=$(mp_db) backup=new_facilitiess_assessment_mp_WED_Prod.sql
 	make restore_new_db database=$(cg_db) backup=facilities_assessment_cg_Wed_Prod.sql
