@@ -12,6 +12,8 @@ DELETE FROM district WHERE name = 'Bilaspur';
 DELETE FROM state WHERE name = 'Chhattisgarh';
 
 ------------ Create a custom checklist for JSS
-UPDATE checklist SET assessment_tool_id = (SELECT id from assessment_tool WHERE assessment_tool.name = 'District Hospital (DH)');
+UPDATE checklist SET assessment_tool_id = (SELECT id from assessment_tool WHERE assessment_tool.name = 'District Hospital (DH)') WHERE assessment_tool_id not in (SELECT id from assessment_tool where name = 'Dakshata');
+UPDATE checklist SET state_id = (SELECT id from state WHERE state.name = 'Madhya Pradesh') WHERE assessment_tool_id = (SELECT id from assessment_tool where name = 'Dakshata');
+
 DELETE from checklist where name = 'Department Wise';
 DELETE from department where name = 'Department Wise';

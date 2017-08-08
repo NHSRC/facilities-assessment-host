@@ -7,7 +7,7 @@ ALTER TABLE public.district ADD COLUMN self_id INT DEFAULT 0;
 INSERT INTO public.district (name, state_id, self_id) SELECT d.name, s.id, d.id from mp.district d, public.state s WHERE d.state_id = s.self_id;
 
 ALTER TABLE public.facility ADD COLUMN self_id INT DEFAULT 0;
-INSERT INTO public.facility (name, district_id, facility_type_id) SELECT f.name, d.id, f.facility_type_id from mp.facility f, public.district d WHERE f.district_id = d.self_id;
+INSERT INTO public.facility (name, district_id, facility_type_id, self_id) SELECT f.name, d.id, f.facility_type_id, f.id from mp.facility f, public.district d WHERE f.district_id = d.self_id;
 
 ALTER TABLE public.department ADD COLUMN self_id INT DEFAULT 0;
 INSERT INTO public.department (name, self_id, sort_order) SELECT d.name, d.id, d.sort_order from mp.department d;
