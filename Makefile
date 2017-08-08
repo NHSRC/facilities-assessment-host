@@ -204,4 +204,3 @@ jss_try_release_4_local:
 
 jss_release_4_prod:
 	make restore_new_db database=$(cg_db) backup=facilities_assessment_cg_LOCAL_4.sql
-	make jss_release_4 superuser=$(superuser)
