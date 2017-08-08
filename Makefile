@@ -204,3 +204,6 @@ jss_try_release_4_local:
 
 jss_release_4_prod:
 	make restore_new_db database=$(cg_db) backup=facilities_assessment_cg_LOCAL_4.sql
+
+jss_release_4_1:
+	find ../reference-data/jss/mp/assessments/output2/ -name *.sql -exec psql -v ON_ERROR_STOP=1 --echo-all "dbname=$(cg_db) options=--search_path=public user=nhsrc" -a -f {} \; > log/assessmentImport2.log
