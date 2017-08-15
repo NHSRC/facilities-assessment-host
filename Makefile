@@ -195,15 +195,4 @@ jss_release_4_1:
 	find deployments/jss/0.4/ -name *.sql -exec psql -v ON_ERROR_STOP=1 --echo-all "dbname=$(cg_db) options=--search_path=public user=nhsrc" -a -f {} \; > log/assessmentImport2.log
 
 schedule_backup:
-	SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-	#2am daily all dbs
-	echo "0 0 2 * * ? ${SCRIPT_DIR}/db/take-db-backup.sh" > dbbackupcron
-	#3am daily metabase db
-	echo "0 0 3 * * ? ${SCRIPT_DIR}/metabase/take-db-backup.sh" >> dbbackupcron
-
-	#install new cron file
-	crontab dbbackupcron
-	rm dbbackupcron
-	crontab -l
-
-	service cron reload
+	sudo sh schedule-backup.sh
