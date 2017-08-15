@@ -7,7 +7,7 @@ cg_db=facilities_assessment_cg
 nhsrc_db := facilities_assessment_nhsrc
 superuser := $(shell id -un)
 
-restore_new_db:
+restore_new_db_local:
 	psql postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$(database)' AND pid <> pg_backend_pid()"
 	-psql postgres -c 'drop database $(database)'
 	psql postgres -c 'create database $(database) with owner nhsrc'
@@ -15,17 +15,8 @@ restore_new_db:
 	psql $(database) < db/backup/$(backup)
 
 # ALL JSS ENVIRONMENTS
-jss_mp_stop_server:
-	-pkill -f 'database=$(mp_db)'
-
 jss_cg_stop_server:
 	-pkill -f 'database=$(cg_db)'
-
-jss_mp_start_server:
-	cd app-servers/mp && nohup java -jar $(jar_file) --database=$(mp_db) --server.port=5000 > log/facilities_assessment.log 2>&1 &
-
-jss_mp_start_server_tail: jss_mp_start_server
-	tail -f app-servers/mp/log/facilities_assessment.log
 
 jss_cg_start_server:
 	cd app-servers/cg && nohup java -jar $(jar_file) --database=facilities_assessment_cg --server.port=6001 > log/facilities_assessment.log 2>&1 &
@@ -33,25 +24,20 @@ jss_cg_start_server:
 jss_cg_start_server_tail: jss_cg_start_server
 	tail -f app-servers/cg/log/facilities_assessment.log
 
-jss_mp_restart_server: jss_mp_stop_server get_server_jar jss_mp_start_server
-
 jss_take_all_db_backup:
 	sh db/take-db-backup.sh
 	sh metabase/take-db-backup.sh
 	ls -lt db/backup/
 	ls -lt metabase/backup/
 
-jss_restore_mp_db:
-	make restore_new_db DAY=$(DAY) database=$(mp_db) backup=$(mp_db)_$(DAY).sql
+jss_restore_cg_db_from_prod_dump:
+	make restore_new_db_local DAY=$(DAY) database=$(cg_db) backup=$(cg_db)_$(DAY)_Prod.sql
 
-jss_restore_cg_db:
-	make restore_new_db DAY=$(DAY) database=$(cg_db) backup=$(cg_db)_$(DAY).sql
+jss_restore_cg_db_local_dump:
+	make restore_new_db_local DAY=$(DAY) database=$(cg_db) backup=$(cg_db)_$(DAY).sql
 
 # PULL FROM JSS PRODUCTION
-jss_pull_and_restore_all_db: jss_pull_mp_db jss_pull_cg_db jss_pull_and_restore_metabase_db
-
-jss_pull_mp_db:
-	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/db/backup/$(mp_db)_$(DAY).sql db/backup/$(mp_db)_$(DAY)_Prod.sql
+jss_pull_and_restore_all_db: jss_pull_cg_db jss_pull_and_restore_metabase_db
 
 jss_pull_cg_db:
 	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/db/backup/$(cg_db)_$(DAY).sql db/backup/$(cg_db)_$(DAY)_Prod.sql
@@ -207,3 +193,13 @@ jss_release_4_prod:
 
 jss_release_4_1:
 	find deployments/jss/0.4/ -name *.sql -exec psql -v ON_ERROR_STOP=1 --echo-all "dbname=$(cg_db) options=--search_path=public user=nhsrc" -a -f {} \; > log/assessmentImport2.log
+
+schedule_backup:
+    SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+    crontab -l > dbbackupcron || true
+    echo "0 0 2 * * ? ${SCRIPT_DIR}/db/take-db-backup.sh"
+    echo "0 0 3 * * ? ${SCRIPT_DIR}/metabase/take-db-backup.sh"
+    crontab dbbackupcron
+    rm dbbackupcron
+    crontab -l
+    sudo service cron reload

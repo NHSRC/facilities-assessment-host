@@ -44,7 +44,63 @@ SELECT count(*)
 FROM checkpoint_score, facility_assessment, facility
 WHERE checkpoint_score.facility_assessment_id = facility_assessment.id AND facility_assessment.facility_id = facility.id AND facility.name = 'Jan Swasthya Sahyog (JSS)';
 
-SELECT *
-FROM facility_assessment;
+SELECT
+  series_name,
+  facility_id
+FROM facility_assessment
+ORDER BY series_name, facility_id;
 SELECT *
 FROM facility;
+
+UPDATE facility_assessment
+SET last_modified_date = current_timestamp
+WHERE series_name = '2';
+UPDATE facility_assessment
+SET series_name = '1', last_modified_date = current_timestamp
+WHERE series_name IS NULL;
+
+SELECT count(*)
+FROM checkpoint_score
+WHERE checklist_id = (SELECT id
+                      FROM checklist
+                      WHERE state_id = 2 AND name = 'SNCU') AND facility_assessment_id = (SELECT id
+                                                                                          FROM facility_assessment
+                                                                                          WHERE facility_id = (SELECT id
+                                                                                                               FROM facility
+                                                                                                               WHERE name = 'Mungeli District Hospital'));
+
+SELECT *
+FROM state;
+
+SELECT
+  Facility,
+  Series,
+  ChecklistName,
+  CheckpointName,
+  CheckpointId,
+  Times
+FROM
+  (SELECT
+     facility.name                            Facility,
+     facility_assessment.id                   FacilityAssesmentId,
+     facility_assessment.series_name          Series,
+     checklist.id                             ChecklistId,
+     checklist.name                           ChecklistName,
+     checkpoint.id                            CheckpointId,
+     checkpoint.name                          CheckpointName,
+     count(checkpoint_score.checkpoint_id) AS Times
+   FROM checkpoint, checkpoint_score, facility_assessment, facility, checklist
+   WHERE
+     checkpoint_score.checkpoint_id = checkpoint.id AND checkpoint_score.facility_assessment_id = facility_assessment.id AND facility_assessment.facility_id = facility.id
+     AND checkpoint.checklist_id = checklist.id
+   GROUP BY facility.id, facility_assessment.id, checklist.id, checkpoint.id) AS NumberOfTimesCheckpointFilled
+WHERE Times > 1;
+
+SELECT a.score, b.score, a.checkpoint_id, a.id from checkpoint_score a, checkpoint_score b where a.checkpoint_id = b.checkpoint_id AND a.facility_assessment_id = b.facility_assessment_id AND a.score != b.score AND a.facility_assessment_id NOT IN (SELECT facility_assessment.id from facility_assessment, facility, state, district WHERE facility_assessment.facility_id = facility.id AND state.name = 'Madhya Pradesh' AND facility.district_id = district.id AND district.state_id = state.id) ORDER BY a.checkpoint_id;
+
+SELECT a.facility_assessment_id, a.checklist_id, a.checkpoint_id, a.id, a.last_modified_date from checkpoint_score a, checkpoint_score b
+  where a.checkpoint_id = b.checkpoint_id AND a.facility_assessment_id = b.facility_assessment_id AND a.checklist_id = b.checklist_id
+        AND a.id != b.id
+ORDER BY a.facility_assessment_id, a.checklist_id, a.checkpoint_id, a.last_modified_date;
+
+-- where the there are multiple of checkpoint scores by deleting the old ones
