@@ -1,2 +1,4 @@
-metabase.*.db*
-metabase.jar*
+metabase.db.lock.db
+metabase.db.trace.db
+metabase.jar
+backup

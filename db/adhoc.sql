@@ -103,4 +103,30 @@ SELECT a.facility_assessment_id, a.checklist_id, a.checkpoint_id, a.id, a.last_m
         AND a.id != b.id
 ORDER BY a.facility_assessment_id, a.checklist_id, a.checkpoint_id, a.last_modified_date;
 
+SELECT * FROM
+  (SELECT
+     Checkpoints.Facility Facility,
+     Checkpoints.Checklist Checklist,
+     count(Checkpoints.CheckpointId) UnfilledCheckpoints
+   FROM
+     (SELECT
+        facility.name  Facility,
+        checklist.name Checklist,
+        checkpoint.id  CheckpointId
+      FROM checkpoint, facility, facility_assessment, assessment_tool, checklist, state, district, assessment_tool_mode
+      WHERE
+        facility.id = facility_assessment.facility_id AND facility_assessment.assessment_tool_id = assessment_tool.id AND assessment_tool.id = checklist.assessment_tool_id
+        AND checkpoint.checklist_id = checklist.id AND state.id = checklist.state_id AND facility.district_id = district.id AND district.state_id = state.id AND assessment_tool.assessment_tool_mode_id = assessment_tool_mode.id AND {{AssessmentMode}} AND facility_assessment.series_name = {{Series}} AND {{state}} [[AND {{facility}}]]) AS Checkpoints LEFT OUTER JOIN
+     (SELECT
+        checkpoint_score.checklist_id,
+        checkpoint_score.checkpoint_id
+      FROM checkpoint_score, facility, facility_assessment, assessment_tool, checklist, state, district, assessment_tool_mode
+      WHERE
+        facility.id = facility_assessment.facility_id AND facility_assessment.assessment_tool_id = assessment_tool.id AND assessment_tool.id = checklist.assessment_tool_id
+        AND checkpoint_score.checklist_id = checklist.id AND checkpoint_score.facility_assessment_id = facility_assessment.id AND state.id = checklist.state_id AND facility.district_id = district.id AND district.state_id = state.id AND assessment_tool.assessment_tool_mode_id = assessment_tool_mode.id AND {{AssessmentMode}} AND facility_assessment.series_name = {{Series}} AND {{state}} [[AND {{facility}}]]) AS CheckpointScores
+       ON Checkpoints.CheckpointId = CheckpointScores.checkpoint_id
+   WHERE CheckpointScores.checkpoint_id IS NULL
+   GROUP BY Checkpoints.Facility, Checkpoints.Checklist ORDER BY Checkpoints.Facility, Checkpoints.Checklist) AS UnfilledCheckpoints
+WHERE UnfilledCheckpoints != (SELECT count(checkpoint.id) FROM checkpoint, checklist, state WHERE checkpoint.checklist_id = checklist.id AND checklist.state_id = state.id AND {{state}} AND checklist.name = Checklist);
+
 -- where the there are multiple of checkpoint scores by deleting the old ones
