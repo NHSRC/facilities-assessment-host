@@ -196,3 +196,7 @@ jss_release_4_1:
 
 schedule_backup:
 	sudo sh schedule-backup.sh
+
+jss_try_release_4_2_local:
+	make restore_new_db_local database=$(cg_db) backup=facilities_assessment_cg_Sun_Prod.sql
+#	make _flyway_migrate database=$(cg_db) schema=public
