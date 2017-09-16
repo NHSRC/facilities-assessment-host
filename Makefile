@@ -200,3 +200,7 @@ schedule_backup:
 jss_try_release_4_2_local:
 	make restore_new_db_local database=$(cg_db) backup=facilities_assessment_cg_Sun_Prod.sql
 #	make _flyway_migrate database=$(cg_db) schema=public
+
+jss_try_release_6_local:
+	make restore_new_db_local database=$(cg_db) backup=facilities_assessment_cg_Sat_Prod.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) < releases/jss/0.6/prod_migration.sql

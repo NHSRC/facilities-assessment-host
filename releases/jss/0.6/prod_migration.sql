@@ -11,3 +11,34 @@ DELETE FROM department WHERE id not in (SELECT min(id) from department GROUP BY 
 
 UPDATE checklist SET department_id = (SELECT id from department WHERE  name = 'IPD') WHERE department_id = (SELECT id from department WHERE name = 'In Patient Department');
 DELETE from department WHERE name = 'In Patient Department';
+
+---
+UPDATE facility_assessment SET series_name = '1' WHERE series_name = 'dakshata  1';
+-- Two assessments done for DH-BSP
+UPDATE checkpoint_score set facility_assessment_id = 46 WHERE facility_assessment_id in (47, 49);
+DELETE from facility_assessment WHERE id in (47, 49);
+UPDATE facility_assessment set series_name = '1' WHERE id = 46;
+
+-- DAKSHATA checklist fix
+UPDATE area_of_concern SET name = 'Availability of resources', reference = 'Form 2' WHERE name = 'Availability of Resources';
+UPDATE area_of_concern SET name = 'Labour room standards', reference = 'Form 3' WHERE name = 'Labor room';
+UPDATE area_of_concern SET name = 'MNH Program (Practices)', reference = 'Form 4' WHERE name = 'MNH Programme';
+
+UPDATE checklist_area_of_concern set checklist_id = (SELECT id from checklist WHERE name = 'Form 2' and state_id = (SELECT id from state WHERE name = 'Chhattisgarh')) WHERE checklist_id = (SELECT id from checklist WHERE name = 'Form 3' and state_id = (SELECT id from state WHERE name = 'Chhattisgarh'));
+UPDATE checklist_area_of_concern set checklist_id = (SELECT id from checklist WHERE name = 'Form 2' and state_id = (SELECT id from state WHERE name = 'Chhattisgarh')) WHERE checklist_id = (SELECT id from checklist WHERE name = 'Form 4' and state_id = (SELECT id from state WHERE name = 'Chhattisgarh'));
+UPDATE checklist_area_of_concern set checklist_id = (SELECT id from checklist WHERE name = 'Form 2' and state_id = (SELECT id from state WHERE name = 'Madhya Pradesh')) WHERE checklist_id = (SELECT id from checklist WHERE name = 'Form 3' and state_id = (SELECT id from state WHERE name = 'Madhya Pradesh'));
+UPDATE checklist_area_of_concern set checklist_id = (SELECT id from checklist WHERE name = 'Form 2' and state_id = (SELECT id from state WHERE name = 'Madhya Pradesh')) WHERE checklist_id = (SELECT id from checklist WHERE name = 'Form 4' and state_id = (SELECT id from state WHERE name = 'Madhya Pradesh'));
+
+UPDATE checkpoint SET checklist_id = (SELECT id from checklist WHERE name = 'Form 2' and state_id = (SELECT id from state WHERE name = 'Chhattisgarh')) WHERE checklist_id = (SELECT id from checklist WHERE name = 'Form 3' and state_id = (SELECT id from state WHERE name = 'Chhattisgarh'));
+UPDATE checkpoint SET checklist_id = (SELECT id from checklist WHERE name = 'Form 2' and state_id = (SELECT id from state WHERE name = 'Chhattisgarh')) WHERE checklist_id = (SELECT id from checklist WHERE name = 'Form 4' and state_id = (SELECT id from state WHERE name = 'Chhattisgarh'));
+UPDATE checkpoint SET checklist_id = (SELECT id from checklist WHERE name = 'Form 2' and state_id = (SELECT id from state WHERE name = 'Madhya Pradesh')) WHERE checklist_id = (SELECT id from checklist WHERE name = 'Form 3' and state_id = (SELECT id from state WHERE name = 'Madhya Pradesh'));
+UPDATE checkpoint SET checklist_id = (SELECT id from checklist WHERE name = 'Form 2' and state_id = (SELECT id from state WHERE name = 'Madhya Pradesh')) WHERE checklist_id = (SELECT id from checklist WHERE name = 'Form 4' and state_id = (SELECT id from state WHERE name = 'Madhya Pradesh'));
+
+UPDATE checkpoint_score SET checklist_id = (SELECT id from checklist WHERE name = 'Form 2' and state_id = (SELECT id from state WHERE name = 'Chhattisgarh')) WHERE checklist_id = (SELECT id from checklist WHERE name = 'Form 3' and state_id = (SELECT id from state WHERE name = 'Chhattisgarh'));
+UPDATE checkpoint_score SET checklist_id = (SELECT id from checklist WHERE name = 'Form 2' and state_id = (SELECT id from state WHERE name = 'Chhattisgarh')) WHERE checklist_id = (SELECT id from checklist WHERE name = 'Form 4' and state_id = (SELECT id from state WHERE name = 'Chhattisgarh'));
+UPDATE checkpoint_score SET checklist_id = (SELECT id from checklist WHERE name = 'Form 2' and state_id = (SELECT id from state WHERE name = 'Madhya Pradesh')) WHERE checklist_id = (SELECT id from checklist WHERE name = 'Form 3' and state_id = (SELECT id from state WHERE name = 'Madhya Pradesh'));
+UPDATE checkpoint_score SET checklist_id = (SELECT id from checklist WHERE name = 'Form 2' and state_id = (SELECT id from state WHERE name = 'Madhya Pradesh')) WHERE checklist_id = (SELECT id from checklist WHERE name = 'Form 4' and state_id = (SELECT id from state WHERE name = 'Madhya Pradesh'));
+
+DELETE FROM checklist WHERE name = 'Form 3';
+DELETE FROM checklist WHERE name = 'Form 4';
+UPDATE checklist SET name = 'Dakshata Checklist', department_id = (SELECT id FROM department WHERE name = 'Labour Room') WHERE name = 'Form 2';
