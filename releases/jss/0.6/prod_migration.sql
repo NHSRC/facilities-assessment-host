@@ -42,3 +42,6 @@ UPDATE checkpoint_score SET checklist_id = (SELECT id from checklist WHERE name 
 DELETE FROM checklist WHERE name = 'Form 3';
 DELETE FROM checklist WHERE name = 'Form 4';
 UPDATE checklist SET name = 'Dakshata Checklist', department_id = (SELECT id FROM department WHERE name = 'Labour Room') WHERE name = 'Form 2';
+
+-- remove kayakalp option
+DELETE from assessment_tool_mode WHERE name = 'kayakalp';
