@@ -12,11 +12,10 @@ DELETE FROM department WHERE id not in (SELECT min(id) from department GROUP BY 
 UPDATE checklist SET department_id = (SELECT id from department WHERE  name = 'IPD') WHERE department_id = (SELECT id from department WHERE name = 'In Patient Department');
 DELETE from department WHERE name = 'In Patient Department';
 
----
+--- Multiple assessments done for DH-BSP
 UPDATE facility_assessment SET series_name = '1' WHERE series_name = 'dakshata  1';
--- Two assessments done for DH-BSP
-UPDATE checkpoint_score set facility_assessment_id = 46 WHERE facility_assessment_id in (47, 49);
-DELETE from facility_assessment WHERE id in (47, 49);
+UPDATE checkpoint_score set facility_assessment_id = 46 WHERE facility_assessment_id in (47, 49, 50);
+DELETE from facility_assessment WHERE id in (47, 49, 50);
 UPDATE facility_assessment set series_name = '1' WHERE id = 46;
 
 -- DAKSHATA checklist fix
@@ -45,3 +44,11 @@ UPDATE checklist SET name = 'Dakshata Checklist', department_id = (SELECT id FRO
 
 -- remove kayakalp option
 DELETE from assessment_tool_mode WHERE name = 'kayakalp';
+
+--- fix bad measurable elements with double dots in the name
+UPDATE checkpoint set measurable_element_id = 387 WHERE measurable_element_id = 383;
+UPDATE checkpoint set measurable_element_id = 84 WHERE measurable_element_id = 83;
+UPDATE checkpoint set measurable_element_id = 1666 WHERE measurable_element_id = 1669;
+UPDATE checkpoint set measurable_element_id = 841 WHERE measurable_element_id = 844;
+
+DELETE from measurable_element WHERE id in (383, 83, 1669, 844);
