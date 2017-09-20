@@ -202,5 +202,9 @@ jss_try_release_4_2_local:
 #	make _flyway_migrate database=$(cg_db) schema=public
 
 jss_try_release_6_local:
-	make restore_new_db_local database=$(cg_db) backup=facilities_assessment_cg_Mon_Prod.sql
+	make restore_new_db_local database=$(cg_db) backup=facilities_assessment_cg_Wed_Prod.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) < releases/jss/0.6/prod_migration.sql
+
+jss_migrate_release_6:
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) < releases/jss/0.6/prod_migration.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) < releases/jss/0.6/R__Reporting_Views.sql

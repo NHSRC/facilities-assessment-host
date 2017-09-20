@@ -14,8 +14,9 @@ DELETE from department WHERE name = 'In Patient Department';
 
 --- Multiple assessments done for DH-BSP
 UPDATE facility_assessment SET series_name = '1' WHERE series_name = 'dakshata  1';
-UPDATE checkpoint_score set facility_assessment_id = 46 WHERE facility_assessment_id in (47, 49, 50);
-DELETE from facility_assessment WHERE id in (47, 49, 50);
+DELETE from checkpoint_score where checklist_id = 16 and facility_assessment_id = 49;
+UPDATE checkpoint_score set facility_assessment_id = 46 WHERE facility_assessment_id in (47, 49, 50, 52);
+DELETE from facility_assessment WHERE id in (47, 49, 50, 52);
 UPDATE facility_assessment set series_name = '1' WHERE id = 46;
 
 -- DAKSHATA checklist fix
