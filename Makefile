@@ -2,7 +2,6 @@ jar_file=facilities-assessment-server-0.0.1-SNAPSHOT.jar
 metabase_db_file=metabase.db.mv.db
 
 # JSS SPECIFIC TASKS
-mp_db=new_facilitiess_assessment_mp
 cg_db=facilities_assessment_cg
 nhsrc_db := facilities_assessment_nhsrc
 superuser := $(shell id -un)
@@ -13,6 +12,9 @@ restore_new_db_local:
 	psql postgres -c 'create database $(database) with owner nhsrc'
 	psql $(database) -c 'create extension if not exists "uuid-ossp"';
 	psql $(database) < db/backup/$(backup)
+
+download_file:
+	cd downloads && wget -c --retry-connrefused --tries=0 -O $(outputfile) $(url)
 
 # ALL JSS ENVIRONMENTS
 jss_cg_stop_server:
