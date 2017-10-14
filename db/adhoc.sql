@@ -233,14 +233,140 @@ SELECT DISTINCT name
 FROM department
 ORDER BY name;
 
-SELECT id, name from assessment_tool WHERE assessment_tool_mode_id = 3;
+SELECT
+  id,
+  name
+FROM assessment_tool
+WHERE assessment_tool_mode_id = 3;
 
-SELECT * from checkpoint_score WHERE checkpoint_score.checklist_id = (SELECT id from checklist WHERE name = 'Laboratory' AND assessment_tool_id = 1 AND state_id = 1) and facility_assessment_id = 49;
-SELECT * from checkpoint_score WHERE facility_assessment_id = 46;
+SELECT *
+FROM checkpoint_score
+WHERE checkpoint_score.checklist_id = (SELECT id
+                                       FROM checklist
+                                       WHERE name = 'Laboratory' AND assessment_tool_id = 1 AND state_id = 1) AND facility_assessment_id = 49;
+SELECT *
+FROM checkpoint_score
+WHERE facility_assessment_id = 46;
 
 
-SELECT * from facility_assessment;
-UPDATE facility_assessment SET last_modified_date=current_timestamp where id=47;
-SELECT * from assessment_tool;
-SELECT * from state;
-SELECT DISTINCT checklist.name from checklist ORDER BY checklist.name;
+SELECT
+  id,
+  series_name
+FROM facility_assessment
+ORDER BY id;
+UPDATE facility_assessment
+SET last_modified_date = current_timestamp
+WHERE id = 47;
+SELECT *
+FROM assessment_tool;
+SELECT *
+FROM state;
+SELECT DISTINCT checklist.name
+FROM checklist
+ORDER BY checklist.name;
+
+SELECT DISTINCT checkpoint_score.checkpoint_id
+FROM checkpoint_score
+WHERE facility_assessment_id = 49
+ORDER BY checkpoint_id;
+SELECT DISTINCT checkpoint_score.checkpoint_id
+FROM checkpoint_score
+WHERE facility_assessment_id = 52
+ORDER BY checkpoint_id;
+
+SELECT DISTINCT checklist_id
+FROM checkpoint_score
+WHERE facility_assessment_id = 47
+ORDER BY checklist_id;
+SELECT DISTINCT checklist_id
+FROM checkpoint_score
+WHERE facility_assessment_id = 46
+ORDER BY checklist_id;
+SELECT DISTINCT checklist_id
+FROM checkpoint_score
+WHERE facility_assessment_id = 49
+ORDER BY checklist_id;
+SELECT DISTINCT checklist_id
+FROM checkpoint_score
+WHERE facility_assessment_id = 50
+ORDER BY checklist_id;
+SELECT DISTINCT checklist_id
+FROM checkpoint_score
+WHERE facility_assessment_id = 52
+ORDER BY checklist_id;
+
+SELECT checkpoint.checklist_id
+FROM checkpoint
+WHERE id = 420;
+
+SELECT *
+FROM checkpoint_score
+WHERE facility_assessment_id IN (46, 47, 49, 50, 52) AND checkpoint_id = 420;
+
+UPDATE checkpoint_score
+SET facility_assessment_id = 46
+WHERE facility_assessment_id IN (47, 49, 50, 52);
+
+SELECT
+  facility_assessment_id,
+  checklist_id,
+  count(*)
+FROM checkpoint_score
+WHERE facility_assessment_id IN (49, 52)
+GROUP BY checklist_id, facility_assessment_id;
+
+SELECT *
+FROM checkpoint_score
+WHERE checklist_id = 16 AND facility_assessment_id = 49 AND checkpoint_id NOT IN (SELECT checkpoint_id
+                                                                                  FROM checkpoint_score
+                                                                                  WHERE facility_assessment_id = 52 AND checklist_id = 16);
+
+SELECT
+  id,
+  state_id,
+  name
+FROM checklist
+ORDER BY state_id, name;
+SELECT *
+FROM checkpoint
+WHERE checklist_id = 85;
+
+
+SELECT *
+FROM
+  (SELECT
+     Checkpoints.Facility            Facility,
+     Checkpoints.Checklist           Checklist,
+     count(Checkpoints.CheckpointId) UnfilledCheckpoints
+   FROM
+     (SELECT
+        facility.name  Facility,
+        checklist.name Checklist,
+        checkpoint.id  CheckpointId
+      FROM checkpoint, facility, facility_assessment, assessment_tool, checklist, area_of_concern, state, district, assessment_tool_mode
+      WHERE
+        facility.id = facility_assessment.facility_id AND facility_assessment.assessment_tool_id = assessment_tool.id AND
+        assessment_tool.id = checklist.assessment_tool_id
+        AND checkpoint.checklist_id = checklist.id AND (state.id = checklist.state_id OR checklist.state_id IS NULL) AND facility.district_id = district.id AND
+        district.state_id = state.id AND assessment_tool.assessment_tool_mode_id = assessment_tool_mode.id AND assessment_tool_mode.name = 'dakshata' AND
+        state.name = 'Madhya Pradesh') AS Checkpoints LEFT OUTER JOIN
+     (SELECT
+        checkpoint_score.checklist_id,
+        checkpoint_score.checkpoint_id
+      FROM checkpoint_score, facility, facility_assessment, assessment_tool, checklist, state, district, assessment_tool_mode
+      WHERE
+        facility.id = facility_assessment.facility_id AND facility_assessment.assessment_tool_id = assessment_tool.id AND
+        assessment_tool.id = checklist.assessment_tool_id
+        AND checkpoint_score.checklist_id = checklist.id AND checkpoint_score.facility_assessment_id = facility_assessment.id AND
+        (state.id = checklist.state_id OR checklist.state_id IS NULL) AND facility.district_id = district.id AND district.state_id = state.id AND
+        assessment_tool.assessment_tool_mode_id = assessment_tool_mode.id AND assessment_tool_mode.name = 'dakshata' AND
+        state.name = 'Madhya Pradesh') AS CheckpointScores
+       ON Checkpoints.CheckpointId = CheckpointScores.checkpoint_id
+   WHERE CheckpointScores.checkpoint_id IS NULL
+   GROUP BY Checkpoints.Facility, Checkpoints.Checklist
+   ORDER BY Checkpoints.Facility, Checkpoints.Checklist) AS UnfilledCheckpoints
+WHERE UnfilledCheckpoints != (SELECT count(checkpoint.id)
+                              FROM checkpoint, checklist, state
+                              WHERE checkpoint.checklist_id = checklist.id AND checklist.state_id = state.id AND state.name = 'Madhya Pradesh' AND
+                                    checklist.name = Checklist);
+
