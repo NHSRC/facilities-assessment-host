@@ -370,3 +370,7 @@ WHERE UnfilledCheckpoints != (SELECT count(checkpoint.id)
                               WHERE checkpoint.checklist_id = checklist.id AND checklist.state_id = state.id AND state.name = 'Madhya Pradesh' AND
                                     checklist.name = Checklist);
 
+SELECT name from department ORDER BY name;
+SELECT name from checklist ORDER BY name;
+
+SELECT DISTINCT name from checkpoint WHERE checklist_id in (SELECT id FROM checklist WHERE name = 'General');
