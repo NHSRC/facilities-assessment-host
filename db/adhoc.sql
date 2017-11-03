@@ -374,3 +374,9 @@ SELECT name from department ORDER BY name;
 SELECT name from checklist ORDER BY name;
 
 SELECT DISTINCT name from checkpoint WHERE checklist_id in (SELECT id FROM checklist WHERE name = 'General');
+
+SELECT * from checkpoint WHERE is_optional = true;
+SELECT * from checkpoint_score WHERE na = true;
+SELECT DISTINCT score_levels from checkpoint;
+
+SELECT * from assessment_type;
