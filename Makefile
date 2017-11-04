@@ -64,6 +64,9 @@ stop_metabase:
 start_metabase:
 	cd metabase && nohup java -jar metabase.jar >> log/metabase.log 2>&1 &
 
+start_metabase_local:
+	cd metabase && java -jar metabase.jar
+
 jss_restore_all_db:
 	make restore_new_db database=$(cg_db) backup=$(cg_db)_$(DAY).sql
 	make restore_new_db database=$(mp_db) backup=$(mp_db)_$(DAY).sql
