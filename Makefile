@@ -1,19 +1,20 @@
 jar_file=facilities-assessment-server-0.0.1-SNAPSHOT.jar
 metabase_db_file=metabase.db.mv.db
 
-# JSS SPECIFIC TASKS
 cg_db=facilities_assessment_cg
 nhsrc_db := facilities_assessment_nhsrc
 superuser := $(shell id -un)
 
+# <db>
 recreate_db:
 	psql postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$(database)' AND pid <> pg_backend_pid()"
 	-psql postgres -c 'drop database $(database)'
 	psql postgres -c 'create database $(database) with owner nhsrc'
 	psql $(database) -c 'create extension if not exists "uuid-ossp"';
 
-restore_new_db_local: recreate_db
+restore_new_local_db: recreate_db
 	psql $(database) < db/backup/$(backup)
+# </db>
 
 download_file:
 	cd downloads && wget -c --retry-connrefused --tries=0 -O $(outputfile) $(url)
@@ -78,10 +79,10 @@ reset_db_nhsrc:
 	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(nhsrc_db) -schemas=public clean
 	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(nhsrc_db) -schemas=public -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
 
-nhsrc_region_data:
+nhsrc_setup_region_data:
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/regions/regionData.sql
 
-nhsrc_assessment_tools: reset_db_nhsrc
+nhsrc_setup_assessment_tools_data: reset_db_nhsrc
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < db/instances/nhsrc/assessment_tools.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/NHSRC_NQAS_DH.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/NHSRC_NQAS_CHC.sql
@@ -92,10 +93,10 @@ nhsrc_assessment_tools: reset_db_nhsrc
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/NHSRC_KK_UPHC_APHC.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/standards_short_names.sql
 
-start_server_nhsrc:
+nhsrc_start_server:
 	cd app-servers/nhsrc && nohup java -jar $(jar_file) --database=$(nhsrc_db) --server.port=6001 > log/facilities_assessment.log 2>&1 &
 
-nhsrc_all: nhsrc_assessment_tools nhsrc_region_data
+nhsrc_setup_all_data: nhsrc_setup_assessment_tools_data nhsrc_setup_region_data
 
 # LOCAL/DEVELOPMENT
 _flyway_migrate:
@@ -139,6 +140,7 @@ jss_cg_assessment_tools:
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc facilities_assessment < ../checklists/jss/cg/output-bsu.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc facilities_assessment < ../checklists/jss/cg/output-bsu-inputs.sql
 
+# <jss_release>
 jss_try_release_3_local:
 	make restore_new_db database=$(mp_db) backup=new_facilitiess_assessment_mp_WED_Prod.sql
 	make restore_new_db database=$(cg_db) backup=facilities_assessment_cg_Wed_Prod.sql
@@ -225,3 +227,4 @@ jss_migrate_release_6_2:
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) < releases/jss/0.6.2/NHSRC_NQAS_PHC.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) < releases/jss/0.6.2/SC.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) < releases/jss/0.6.2/fix-department-names.sql
+# </jss_release>
