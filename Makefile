@@ -72,7 +72,10 @@ jss_restore_all_db:
 	make restore_new_db database=$(cg_db) backup=$(cg_db)_$(DAY).sql
 
 # NHSRC
-reset_db_nhsrc:
+nhsrc_recreate_db:
+	make recreate_db database=$(nhsrc_db)
+
+nhsrc_recreate_schema:
 	-psql -Unhsrc postgres -c 'drop database $(nhsrc_db)';
 	-psql -Unhsrc postgres -c 'create database $(nhsrc_db) with owner nhsrc';
 	-psql $(nhsrc_db) -c 'create extension if not exists "uuid-ossp"';
