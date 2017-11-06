@@ -69,7 +69,6 @@ start_metabase_local:
 
 jss_restore_all_db:
 	make restore_new_db database=$(cg_db) backup=$(cg_db)_$(DAY).sql
-	make restore_new_db database=$(mp_db) backup=$(mp_db)_$(DAY).sql
 
 # NHSRC
 reset_db_nhsrc:
@@ -92,6 +91,9 @@ nhsrc_assessment_tools: reset_db_nhsrc
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/NHSRC_KK_PHC.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/NHSRC_KK_UPHC_APHC.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/standards_short_names.sql
+
+start_server_nhsrc:
+	cd app-servers/nhsrc && nohup java -jar $(jar_file) --database=$(nhsrc_db) --server.port=6001 > log/facilities_assessment.log 2>&1 &
 
 nhsrc_all: nhsrc_assessment_tools nhsrc_region_data
 
