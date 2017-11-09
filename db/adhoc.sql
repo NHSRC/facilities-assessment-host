@@ -375,8 +375,65 @@ SELECT name from checklist ORDER BY name;
 
 SELECT DISTINCT name from checkpoint WHERE checklist_id in (SELECT id FROM checklist WHERE name = 'General');
 
-SELECT * from checkpoint WHERE is_optional = true;
+
 SELECT * from checkpoint_score WHERE na = true;
 SELECT DISTINCT score_levels from checkpoint;
 
 SELECT * from assessment_type;
+
+SELECT * from checkpoint WHERE is_optional = true;
+
+
+
+SELECT
+  state.id                state_id,
+  assessment_tool_mode.name assessment_tool_mode_id,
+  assessment_tool.name      assessment_tool_id,
+  checklist.name            checklist_id,
+  area_of_concern.name      area_of_concern_id,
+  standard.name             standard_id,
+  measurable_element.name   measurable_element_id,
+  checkpoint.name           checkpoint_id
+FROM checkpoint
+  INNER JOIN measurable_element ON checkpoint.measurable_element_id = measurable_element.id
+  INNER JOIN standard ON measurable_element.standard_id = standard.id
+  INNER JOIN area_of_concern ON standard.area_of_concern_id = area_of_concern.id
+  INNER JOIN checklist ON checkpoint.checklist_id = checklist.id
+  INNER JOIN assessment_tool ON checklist.assessment_tool_id = assessment_tool.id
+  INNER JOIN assessment_tool_mode ON assessment_tool.assessment_tool_mode_id = assessment_tool_mode.id
+  INNER JOIN state ON (checklist.state_id = state.id OR checklist.state_id IS NULL)
+WHERE is_optional = true;
+
+SELECT DISTINCT means_of_verification from checkpoint limit 1;
+SELECT * from checkpoint limit 100;
+
+
+select * FROM checkpoint order by id desc;
+
+SELECT * from facility;
+
+
+
+
+
+SELECT
+  aocw.aocname  AS "Area of Concern",
+  aocw.aocscore AS "Score"
+FROM
+  (SELECT
+     format('%s (%s)', aoc.reference, aoc.name) AS aocname,
+     (sum(cs.score) :: FLOAT / (2 * count(cs.score) :: FLOAT) :: FLOAT * 100 :: FLOAT) AS aocscore,
+     max(fa.start_date)
+   FROM checkpoint_score cs
+     INNER JOIN checkpoint c ON cs.checkpoint_id = c.id
+     LEFT OUTER JOIN checklist cl ON cl.id = cs.checklist_id
+     LEFT OUTER JOIN department ON cl.department_id = department.id
+     LEFT OUTER JOIN measurable_element me ON me.id = c.measurable_element_id
+     LEFT OUTER JOIN standard s ON s.id = me.standard_id
+     LEFT OUTER JOIN area_of_concern aoc ON aoc.id = s.area_of_concern_id
+     LEFT OUTER JOIN facility_assessment fa ON cs.facility_assessment_id = fa.id
+     LEFT OUTER JOIN facility ON fa.facility_id = facility.id
+     LEFT OUTER JOIN assessment_tool ON fa.assessment_tool_id = assessment_tool.id
+     LEFT OUTER JOIN assessment_tool_mode ON assessment_tool_mode.id = assessment_tool.assessment_tool_mode_id
+   WHERE facility.name = 'CHC Kota' and fa.series_name = '1' and assessment_tool_mode.name = 'nqas'
+                                                                                                         GROUP BY aocname order by aocname) AS aocw;

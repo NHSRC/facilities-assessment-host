@@ -1,0 +1,10 @@
+INSERT INTO facility (name, district_id, facility_type_id) VALUES ('SC Dudhmaniya', (SELECT id from district WHERE name = 'Anuppur'), (SELECT id from facility_type WHERE name = 'Sub-Centre'));
+INSERT INTO facility (name, district_id, facility_type_id) VALUES ('SC Padari', (SELECT id from district WHERE name = 'Anuppur'), (SELECT id from facility_type WHERE name = 'Sub-Centre'));
+INSERT INTO facility (name, district_id, facility_type_id) VALUES ('SC Nagula', (SELECT id from district WHERE name = 'Anuppur'), (SELECT id from facility_type WHERE name = 'Sub-Centre'));
+INSERT INTO facility (name, district_id, facility_type_id) VALUES ('SC Ufarikala', (SELECT id from district WHERE name = 'Anuppur'), (SELECT id from facility_type WHERE name = 'Sub-Centre'));
+INSERT INTO facility (name, district_id, facility_type_id) VALUES ('SC Karpa', (SELECT id from district WHERE name = 'Anuppur'), (SELECT id from facility_type WHERE name = 'Sub-Centre'));
+INSERT INTO facility (name, district_id, facility_type_id) VALUES ('SC Jaitahari', (SELECT id from district WHERE name = 'Anuppur'), (SELECT id from facility_type WHERE name = 'Sub-Centre'));
+INSERT INTO facility (name, district_id, facility_type_id) VALUES ('SC Dhuradhar', (SELECT id from district WHERE name = 'Anuppur'), (SELECT id from facility_type WHERE name = 'Sub-Centre'));
+INSERT INTO facility (name, district_id, facility_type_id) VALUES ('SC Kharsol', (SELECT id from district WHERE name = 'Anuppur'), (SELECT id from facility_type WHERE name = 'Sub-Centre'));
+INSERT INTO facility (name, district_id, facility_type_id) VALUES ('SC Baditumbi', (SELECT id from district WHERE name = 'Anuppur'), (SELECT id from facility_type WHERE name = 'Sub-Centre'));
+INSERT INTO facility (name, district_id, facility_type_id) VALUES ('SC Khamraudh', (SELECT id from district WHERE name = 'Anuppur'), (SELECT id from facility_type WHERE name = 'Sub-Centre'));
