@@ -7,12 +7,12 @@ superuser := $(shell id -un)
 
 # <db>
 recreate_db:
-	sudo -u postgres psql -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$(database)' AND pid <> pg_backend_pid()"
-	-sudo -u postgres psql -c 'drop database $(database)'
-	sudo -u postgres psql -c 'create database $(database) with owner nhsrc'
-	sudo -u postgres psql $(database) -c 'create extension if not exists "uuid-ossp"';
+	sudo -u $(superuser) psql -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$(database)' AND pid <> pg_backend_pid()"
+	-sudo -u $(superuser) psql -c 'drop database $(database)'
+	sudo -u $(superuser) psql -c 'create database $(database) with owner nhsrc'
+	sudo -u $(superuser) psql $(database) -c 'create extension if not exists "uuid-ossp"';
 
-restore_new_local_db: recreate_db
+restore_new_db_local: recreate_db
 	psql $(database) < db/backup/$(backup)
 # </db>
 

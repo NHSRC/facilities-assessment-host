@@ -413,9 +413,6 @@ select * FROM checkpoint order by id desc;
 SELECT * from facility;
 
 
-
-
-
 SELECT
   aocw.aocname  AS "Area of Concern",
   aocw.aocscore AS "Score"
@@ -437,3 +434,6 @@ FROM
      LEFT OUTER JOIN assessment_tool_mode ON assessment_tool_mode.id = assessment_tool.assessment_tool_mode_id
    WHERE facility.name = 'CHC Kota' and fa.series_name = '1' and assessment_tool_mode.name = 'nqas'
                                                                                                          GROUP BY aocname order by aocname) AS aocw;
+
+
+SELECT name, reference from area_of_concern;
