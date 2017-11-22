@@ -57,6 +57,7 @@ jss_push_metabase_db:
 jss_cg_push_server_jar:
 	scp ../facilities-assessment-server/build/libs/$(jar_file) nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/app-servers/cg
 
+
 # JSS PRODUCTION SERVER
 # Common to all environments
 stop_metabase:
@@ -71,7 +72,13 @@ start_metabase_local:
 jss_restore_all_db:
 	make restore_new_db database=$(cg_db) backup=$(cg_db)_$(DAY).sql
 
-# NHSRC
+
+# <nhsrc>
+nhsrc_prod_server=103.35.123.67
+nhsrc_slave_server=103.35.123.68
+nhsrc_db=facilities_assessment_nhsrc
+nhsrc_server_port=2249
+
 nhsrc_recreate_db:
 	make recreate_db database=$(nhsrc_db)
 
@@ -101,7 +108,15 @@ nhsrc_start_server:
 
 nhsrc_setup_all_data: nhsrc_setup_assessment_tools_data nhsrc_setup_region_data
 
-# LOCAL/DEVELOPMENT
+nhsrc_pull_db:
+	scp -P $(nhsrc_server_port) nhsrc@$(nhsrc_prod_server):/home/nhsrc/facilities-assessment-host/db/backup/$(nhsrc_db)-$(DAY).sql db/backup/$(nhsrc_db)-$(DAY)_Prod.sql
+
+nhsrc_restore_db:
+	make restore_new_db_local DAY=$(DAY) database=$(nhsrc_db) backup=$(nhsrc_db)-$(DAY)_Prod.sql
+# </nhsrc>
+
+
+# <local_development>
 _flyway_migrate:
 	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(database) -schemas=$(schema) -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
 
@@ -142,6 +157,8 @@ jss_cg_assessment_tools:
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc facilities_assessment < ../checklists/jss/cg/output.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc facilities_assessment < ../checklists/jss/cg/output-bsu.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc facilities_assessment < ../checklists/jss/cg/output-bsu-inputs.sql
+# </local_development>
+
 
 # <jss_release>
 jss_try_release_3_local:
@@ -230,9 +247,14 @@ jss_migrate_release_6_2:
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) < releases/jss/0.6.2/NHSRC_NQAS_PHC.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) < releases/jss/0.6.2/SC.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) < releases/jss/0.6.2/fix-department-names.sql
+
+jss_migrate_release_7:
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < releases/nhsrc/0.7/deleteData.sql
 # </jss_release>
 
 # <nhsrc_releases>
-jss_migrate_release_7:
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < releases/nhsrc/0.7/deleteData.sql
+nhsrc_migrate_release_7_2:
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < releases/nhsrc/0.7.2/setupDeploymentConfiguration.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < releases/nhsrc/0.7.2/cleanData.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < releases/nhsrc/0.7.2/LAQSHYA.sql
 # </nhsrc_releases>

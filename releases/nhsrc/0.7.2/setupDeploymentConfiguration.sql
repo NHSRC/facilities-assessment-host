@@ -1,0 +1,1 @@
+INSERT INTO deployment_configuration (recording_mode, version) VALUES (TRUE, 1);
