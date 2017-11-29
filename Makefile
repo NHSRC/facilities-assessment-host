@@ -4,6 +4,7 @@ metabase_db_file=metabase.db.mv.db
 cg_db=facilities_assessment_cg
 nhsrc_db := facilities_assessment_nhsrc
 superuser := $(shell id -un)
+DAYNAME := $(shell date +%a)
 
 # <db>
 recreate_db:
@@ -113,6 +114,9 @@ nhsrc_pull_db:
 
 nhsrc_restore_db:
 	make restore_new_db_local DAY=$(DAY) database=$(nhsrc_db) backup=$(nhsrc_db)-$(DAY)_Prod.sql
+
+nhsrc_take_backup:
+	pg_dump $(nhsrc_db) > db/backup/$(nhsrc_db)_$(DAYNAME).sql
 # </nhsrc>
 
 
@@ -257,4 +261,6 @@ nhsrc_migrate_release_7_2:
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < releases/nhsrc/0.7.2/setupDeploymentConfiguration.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < releases/nhsrc/0.7.2/cleanData.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < releases/nhsrc/0.7.2/LAQSHYA.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < releases/nhsrc/0.7.2/andaman-nicobar.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < releases/nhsrc/0.7.2/dakshata.sql
 # </nhsrc_releases>
