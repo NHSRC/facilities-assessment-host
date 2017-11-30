@@ -20,10 +20,10 @@ restore_db:
 	psql $(database) < db/backup/$(backup)
 
 restore_db_from_prod:
-	make restore_db database=$(database) backup=$(database)_$(DAY)_Production.sql
+	make restore_db database=$(database) backup=$(database)_$(DAY)_production.sql
 
 restore_db_from_development:
-	make restore_db database=$(database) backup=$(database)_$(DAY)_Development.sql
+	make restore_db database=$(database) backup=$(database)_$(DAY)_development.sql
 
 recreate_schema:
 	-psql -Unhsrc postgres -c 'drop database $(db)';
