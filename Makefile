@@ -2,8 +2,9 @@ jar_file=facilities-assessment-server-0.0.1-SNAPSHOT.jar
 metabase_db_file=metabase.db.mv.db
 
 database := facilities_assessment_$(db)
-superuser := $(shell id -un)
 DAYNAME := $(shell date +%a)
+database_file := $(database)_$(DAY)_$(ENV).sql
+superuser := $(shell id -un)
 
 test:
 	@echo $(database)
@@ -56,7 +57,7 @@ jss_take_all_db_backup:
 
 # PULL FROM JSS PRODUCTION
 jss_pull_db:
-	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/db/backup/$(database)_$(DAY).sql db/backup/$(database)_$(DAY)_Production.sql
+	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/db/backup/$(database_file) db/backup/
 
 # PUSH TO JSS PRODUCTION
 jss_push_metabase_db:
@@ -99,7 +100,7 @@ nhsrc_pull_db:
 	scp -P $(nhsrc_server_port) nhsrc@$(nhsrc_prod_server):/home/nhsrc/facilities-assessment-host/db/backup/$(nhsrc_db)_$(DAY).sql db/backup/$(nhsrc_db)_$(DAY)_Prod.sql
 
 nhsrc_push_db:
-	scp -P $(nhsrc_server_port) db/backup/$(nhsrc_db)_$(DAY).sql nhsrc@$(nhsrc_prod_server):/home/nhsrc/facilities-assessment-host/db/backup/$(nhsrc_db)_$(DAY).sql
+	scp -P $(nhsrc_server_port) db/backup/$(database_file) nhsrc@$(nhsrc_prod_server):/home/nhsrc/facilities-assessment-host/db/backup/
 # </nhsrc>
 
 
