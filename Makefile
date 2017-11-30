@@ -14,7 +14,7 @@ recreate_db:
 	sudo -u $(superuser) psql postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$(database)' AND pid <> pg_backend_pid()"
 	-sudo -u $(superuser) psql postgres -c 'drop database $(database)'
 	sudo -u $(superuser) psql postgres -c 'create database $(database) with owner nhsrc'
-	sudo -u $(superuser) psql postgres $(database) -c 'create extension if not exists "uuid-ossp"';
+	sudo -u $(superuser) psql $(database) -c 'create extension if not exists "uuid-ossp"';
 
 restore_db:
 	make recreate_db database=$(database)
