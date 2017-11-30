@@ -31,6 +31,9 @@ recreate_schema:
 	-psql $(db) -c 'create extension if not exists "uuid-ossp"';
 	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(db) -schemas=public clean
 	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(db) -schemas=public -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
+
+backup_db:
+	pg_dump $(database) > db/backup/$(database)_$(DAYNAME)_$(ENV).sql
 # </db>
 
 # <server>
@@ -97,9 +100,6 @@ nhsrc_pull_db:
 
 nhsrc_push_db:
 	scp -P $(nhsrc_server_port) db/backup/$(nhsrc_db)_$(DAY).sql nhsrc@$(nhsrc_prod_server):/home/nhsrc/facilities-assessment-host/db/backup/$(nhsrc_db)_$(DAY).sql
-
-nhsrc_take_backup:
-	pg_dump $(database) > db/backup/$(database)_$(DAYNAME)_$(ENV).sql
 # </nhsrc>
 
 
