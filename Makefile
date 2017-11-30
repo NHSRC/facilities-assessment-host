@@ -99,7 +99,7 @@ nhsrc_push_db:
 	scp -P $(nhsrc_server_port) db/backup/$(nhsrc_db)_$(DAY).sql nhsrc@$(nhsrc_prod_server):/home/nhsrc/facilities-assessment-host/db/backup/$(nhsrc_db)_$(DAY).sql
 
 nhsrc_take_backup:
-	pg_dump $(nhsrc_db) > db/backup/$(nhsrc_db)_$(DAYNAME)_$(ENV).sql
+	pg_dump $(nhsrc_db) > db/backup/$(database)_$(DAYNAME)_$(ENV).sql
 # </nhsrc>
 
 
