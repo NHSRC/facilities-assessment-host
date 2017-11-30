@@ -1,10 +1,12 @@
 jar_file=facilities-assessment-server-0.0.1-SNAPSHOT.jar
 metabase_db_file=metabase.db.mv.db
 
-cg_db=facilities_assessment_cg
-nhsrc_db := facilities_assessment_nhsrc
+database := facilities_assessment_$(db)
 superuser := $(shell id -un)
 DAYNAME := $(shell date +%a)
+
+test:
+	@echo $(database)
 
 # <db>
 recreate_db:
@@ -13,22 +15,35 @@ recreate_db:
 	sudo -u $(superuser) psql -c 'create database $(database) with owner nhsrc'
 	sudo -u $(superuser) psql $(database) -c 'create extension if not exists "uuid-ossp"';
 
-restore_new_db_local: recreate_db
+restore_db:
+	make recreate_db database=$(database)
 	psql $(database) < db/backup/$(backup)
+
+restore_db_from_prod:
+	make restore_db database=$(cg_db) backup=$(cg_db)_$(DAY)_Production.sql
+
+restore_db_from_development:
+	make restore_db database=$(cg_db) backup=$(cg_db)_$(DAY)_Development.sql
+
+recreate_schema:
+	-psql -Unhsrc postgres -c 'drop database $(db)';
+	-psql -Unhsrc postgres -c 'create database $(db) with owner nhsrc';
+	-psql $(db) -c 'create extension if not exists "uuid-ossp"';
+	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(db) -schemas=public clean
+	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(db) -schemas=public -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
 # </db>
+
+# <server>
+start_server:
+	cd app-servers && nohup java -jar $(jar_file) --database=$(database) --server.port=6001 > log/facilities_assessment.log 2>&1 &
+# </server>
 
 download_file:
 	cd downloads && wget -c --retry-connrefused --tries=0 -O $(outputfile) $(url)
 
 # ALL JSS ENVIRONMENTS
-jss_cg_stop_server:
-	-pkill -f 'database=$(cg_db)'
-
-jss_cg_start_server:
-	cd app-servers/cg && nohup java -jar $(jar_file) --database=facilities_assessment_cg --server.port=6001 > log/facilities_assessment.log 2>&1 &
-
-jss_cg_start_server_tail: jss_cg_start_server
-	tail -f app-servers/cg/log/facilities_assessment.log
+stop_server:
+	-pkill -f 'database=$(database)'
 
 jss_take_all_db_backup:
 	sh db/take-db-backup.sh
@@ -36,26 +51,15 @@ jss_take_all_db_backup:
 	ls -lt db/backup/
 	ls -lt metabase/backup/
 
-jss_restore_cg_db_from_prod_dump:
-	make restore_new_db_local DAY=$(DAY) database=$(cg_db) backup=$(cg_db)_$(DAY)_Prod.sql
-
-jss_restore_cg_db_local_dump:
-	make restore_new_db_local DAY=$(DAY) database=$(cg_db) backup=$(cg_db)_$(DAY).sql
-
 # PULL FROM JSS PRODUCTION
-jss_pull_and_restore_all_db: jss_pull_cg_db jss_pull_and_restore_metabase_db
-
-jss_pull_cg_db:
-	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/db/backup/$(cg_db)_$(DAY).sql db/backup/$(cg_db)_$(DAY)_Prod.sql
-
-jss_pull_and_restore_metabase_db:
-	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/metabase/backup/$(metabase_db_file)_$(DAY) metabase/$(metabase_db_file)
+jss_pull_db:
+	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/db/backup/$(database)_$(DAY).sql db/backup/$(database)_$(DAY)_Production.sql
 
 # PUSH TO JSS PRODUCTION
 jss_push_metabase_db:
 	scp metabase/$(metabase_db_file) nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/metabase/
 
-jss_cg_push_server_jar:
+jss_push_server_jar:
 	scp ../facilities-assessment-server/build/libs/$(jar_file) nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/app-servers/cg
 
 
@@ -67,33 +71,15 @@ stop_metabase:
 start_metabase:
 	cd metabase && nohup java -jar metabase.jar >> log/metabase.log 2>&1 &
 
-start_metabase_local:
-	cd metabase && java -jar metabase.jar
-
-jss_restore_all_db:
-	make restore_new_db database=$(cg_db) backup=$(cg_db)_$(DAY).sql
-
-
 # <nhsrc>
 nhsrc_prod_server=103.35.123.67
 nhsrc_slave_server=103.35.123.68
-nhsrc_db=facilities_assessment_nhsrc
 nhsrc_server_port=2249
 
-nhsrc_recreate_db:
-	make recreate_db database=$(nhsrc_db)
-
-nhsrc_recreate_schema:
-	-psql -Unhsrc postgres -c 'drop database $(nhsrc_db)';
-	-psql -Unhsrc postgres -c 'create database $(nhsrc_db) with owner nhsrc';
-	-psql $(nhsrc_db) -c 'create extension if not exists "uuid-ossp"';
-	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(nhsrc_db) -schemas=public clean
-	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(nhsrc_db) -schemas=public -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
-
 nhsrc_setup_region_data:
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/regions/regionData.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(database) < ../reference-data/nhsrc/regions/regionData.sql
 
-nhsrc_setup_assessment_tools_data: reset_db_nhsrc
+nhsrc_setup_assessment_tools_data:
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < db/instances/nhsrc/assessment_tools.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/NHSRC_NQAS_DH.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/NHSRC_NQAS_CHC.sql
@@ -104,19 +90,16 @@ nhsrc_setup_assessment_tools_data: reset_db_nhsrc
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/NHSRC_KK_UPHC_APHC.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/standards_short_names.sql
 
-nhsrc_start_server:
-	cd app-servers/nhsrc && nohup java -jar $(jar_file) --database=$(nhsrc_db) --server.port=6001 > log/facilities_assessment.log 2>&1 &
-
 nhsrc_setup_all_data: nhsrc_setup_assessment_tools_data nhsrc_setup_region_data
 
 nhsrc_pull_db:
-	scp -P $(nhsrc_server_port) nhsrc@$(nhsrc_prod_server):/home/nhsrc/facilities-assessment-host/db/backup/$(nhsrc_db)-$(DAY).sql db/backup/$(nhsrc_db)-$(DAY)_Prod.sql
+	scp -P $(nhsrc_server_port) nhsrc@$(nhsrc_prod_server):/home/nhsrc/facilities-assessment-host/db/backup/$(nhsrc_db)_$(DAY).sql db/backup/$(nhsrc_db)_$(DAY)_Prod.sql
 
-nhsrc_restore_db:
-	make restore_new_db_local DAY=$(DAY) database=$(nhsrc_db) backup=$(nhsrc_db)-$(DAY)_Prod.sql
+nhsrc_push_db:
+	scp -P $(nhsrc_server_port) db/backup/$(nhsrc_db)_$(DAY).sql nhsrc@$(nhsrc_prod_server):/home/nhsrc/facilities-assessment-host/db/backup/$(nhsrc_db)_$(DAY).sql
 
 nhsrc_take_backup:
-	pg_dump $(nhsrc_db) > db/backup/$(nhsrc_db)_$(DAYNAME).sql
+	pg_dump $(nhsrc_db) > db/backup/$(nhsrc_db)_$(DAYNAME)_$(ENV).sql
 # </nhsrc>
 
 
@@ -131,23 +114,8 @@ _get_server_jar:
 _make_binary:
 	cd ../facilities-assessment-server && make binary
 
-qa_db=facilities_assessment_cg
-
-qa_restore_db_from:
-	make restore_new_db database=$(qa_db) backup=$(BACKUP).sql
-
-qa_get_server_jar:
-	make _get_server_jar env=qa
-
 cg_get_server_jar:
 	make _get_server_jar env=cg
-
-qa_stop_server:
-	-pkill -f 'database=$(qa_db)'
-
-qa_start_server: qa_stop_server
-	cd app-servers/qa && nohup java -jar $(jar_file) --database=$(qa_db) --server.port=5000 > log/facilities_assessment.log 2>&1 &
-	tail -f app-servers/qa/log/facilities_assessment.log
 
 create_release: _make_binary
 	cp ../facilities-assessment-server/build/libs/$(jar_file) releases/$(client)/$(release)
@@ -166,8 +134,8 @@ jss_cg_assessment_tools:
 
 # <jss_release>
 jss_try_release_3_local:
-	make restore_new_db database=$(mp_db) backup=new_facilitiess_assessment_mp_WED_Prod.sql
-	make restore_new_db database=$(cg_db) backup=facilities_assessment_cg_Wed_Prod.sql
+	make restore_db database=$(mp_db) backup=new_facilitiess_assessment_mp_WED_Prod.sql
+	make restore_db database=$(cg_db) backup=facilities_assessment_cg_Wed_Prod.sql
 	make _flyway_migrate database=$(mp_db) schema=public
 	make _flyway_migrate database=$(cg_db) schema=public
 	make jss_release_3
@@ -219,12 +187,12 @@ jss_release_4:
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) < deployments/jss/v0.4-update-assessment-dates.sql
 
 jss_try_release_4_local:
-	make restore_new_db database=$(cg_db) backup=facilities_assessment_cg_LOCAL.sql
-	make restore_new_db database=$(mp_db) backup=new_facilitiess_assessment_mp_LOCAL.sql
+	make restore_db database=$(cg_db) backup=facilities_assessment_cg_LOCAL.sql
+	make restore_db database=$(mp_db) backup=new_facilitiess_assessment_mp_LOCAL.sql
 	make jss_release_4 superuser=$(superuser)
 
 jss_release_4_prod:
-	make restore_new_db database=$(cg_db) backup=facilities_assessment_cg_LOCAL_4.sql
+	make restore_db database=$(cg_db) backup=facilities_assessment_cg_LOCAL_4.sql
 
 jss_release_4_1:
 	find deployments/jss/0.4/ -name *.sql -exec psql -v ON_ERROR_STOP=1 --echo-all "dbname=$(cg_db) options=--search_path=public user=nhsrc" -a -f {} \; > log/assessmentImport2.log
@@ -233,11 +201,11 @@ schedule_backup:
 	sudo sh schedule-backup.sh
 
 jss_try_release_4_2_local:
-	make restore_new_db_local database=$(cg_db) backup=facilities_assessment_cg_Sun_Prod.sql
+	make restore_db database=$(cg_db) backup=facilities_assessment_cg_Sun_Prod.sql
 #	make _flyway_migrate database=$(cg_db) schema=public
 
 jss_try_release_6_local:
-	make restore_new_db_local database=$(cg_db) backup=facilities_assessment_cg_Wed_Prod.sql
+	make restore_db database=$(cg_db) backup=facilities_assessment_cg_Wed_Prod.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) < releases/jss/0.6/prod_migration.sql
 
 jss_migrate_release_6:
@@ -245,7 +213,7 @@ jss_migrate_release_6:
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) < releases/jss/0.6/R__Reporting_Views.sql
 
 jss_migrate_release_6_2:
-	make restore_new_db_local database=$(cg_db) backup=facilities_assessment_cg_Thu_Prod.sql
+	make restore_db database=$(cg_db) backup=facilities_assessment_cg_Thu_Prod.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) < releases/jss/0.6.2/add-sector-schema.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) < releases/jss/0.6.2/remove-kota-district.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(cg_db) < releases/jss/0.6.2/NHSRC_NQAS_PHC.sql
