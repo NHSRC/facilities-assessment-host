@@ -14,16 +14,16 @@ recreate_db:
 	sudo -u $(superuser) psql postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$(database)' AND pid <> pg_backend_pid()"
 	-sudo -u $(superuser) psql postgres -c 'drop database $(database)'
 	sudo -u $(superuser) psql postgres -c 'create database $(database) with owner nhsrc'
-	sudo -u $(superuser) psql $(database) -c 'create extension if not exists "uuid-ossp"';
+	sudo -u $(superuser) psql $(database) -c 'create extension if not exists "uuid-ossp"'
 
 restore_db:
 	make recreate_db database=$(database)
-	psql postgres $(database) < db/backup/$(backup)
+	psql $(database) < db/backup/$(backup)
 
-restore_db_from_prod:
+restore_prod_db:
 	make restore_db database=$(database) backup=$(database)_$(DAY)_production.sql
 
-restore_db_from_development:
+restore_development_db:
 	make restore_db database=$(database) backup=$(database)_$(DAY)_development.sql
 
 recreate_schema:
@@ -227,9 +227,11 @@ jss_migrate_release_7:
 
 # <nhsrc_releases>
 nhsrc_migrate_release_7_2:
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < releases/nhsrc/0.7.2/setupDeploymentConfiguration.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < releases/nhsrc/0.7.2/cleanData.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < releases/nhsrc/0.7.2/LAQSHYA.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < releases/nhsrc/0.7.2/andaman-nicobar.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < releases/nhsrc/0.7.2/dakshata.sql
+	make restore_prod_db DAY=$(DAY) db=$(db)
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(database) < releases/nhsrc/0.7.2/setupDeploymentConfiguration.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(database) < releases/nhsrc/0.7.2/cleanData.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(database) < releases/nhsrc/0.7.2/LAQSHYA.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(database) < releases/nhsrc/0.7.2/andaman-nicobar.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(database) < releases/nhsrc/0.7.2/dakshata.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(database) < releases/nhsrc/0.7.2/laqshya-modifications.sql
 # </nhsrc_releases>
