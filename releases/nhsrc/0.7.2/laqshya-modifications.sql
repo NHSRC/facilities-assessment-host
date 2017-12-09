@@ -13,8 +13,6 @@ DELETE from area_of_concern WHERE id NOT in (SELECT area_of_concern_id from stan
 DELETE from checklist WHERE name in ('Form 2', 'Form 3');
 DELETE from department WHERE name in ('Form 2', 'Form 3');
 
-UPDATE checklist SET name = 'OSCE' WHERE name = 'Form 4';
-UPDATE department SET name = 'OSCE' WHERE name = 'Form 4';
-
 update assessment_tool SET name = 'NQAS' WHERE id = (SELECT id from assessment_tool WHERE name = 'LAQSHYA');
+update assessment_tool SET name = 'OSCE' WHERE id = (SELECT id from assessment_tool WHERE name = 'Dakshata');
 -- DELETE from checkpoint WHERE checklist_id = (SELECT id from checklist where );

@@ -1,1 +1,1 @@
-SELECT DISTINCT name as foo from checklist ORDER BY foo;
+SELECT * from assessment_tool;
