@@ -234,4 +234,5 @@ nhsrc_migrate_release_7_2:
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(database) < releases/nhsrc/0.7.2/andaman-nicobar.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(database) < releases/nhsrc/0.7.2/dakshata.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(database) < releases/nhsrc/0.7.2/laqshya-modifications.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(database) < releases/nhsrc/0.7.2/updateStateNames.sql
 # </nhsrc_releases>
