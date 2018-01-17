@@ -20,7 +20,7 @@ recreate_db:
 
 restore_db:
 	make recreate_db database=$(database)
-	psql $(database) < db/backup/$(backup)
+	sudo -u $(superuser) psql $(database) < db/backup/$(backup)
 
 restore_prod_db:
 	make restore_db database=$(database) backup=$(prod_database_file)
