@@ -54,7 +54,7 @@ start_server_jss:
 	$(call _start_server,$(jss_database),$(jss_port))
 
 start_server_nhsrc:
-	$(call _start_server,$(nhsrc_database),$(nhsrc_port))
+	cd app-servers && sudo nohup java -jar $(jar_file) --database=facilities_assessment_nhsrc --server.port=80 > log/facilities_assessment.log 2>&1 &
 
 stop_server_jss:
 	$(call _stop_server,$(jss_database))
