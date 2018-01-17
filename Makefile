@@ -1,12 +1,22 @@
 jar_file=facilities-assessment-server-0.0.1-SNAPSHOT.jar
 metabase_db_file=metabase.db.mv.db
 
-database := facilities_assessment_$(db)
+jss_database := facilities_assessment_cg
 nhsrc_database := facilities_assessment_nhsrc
+jss_port := 6001
+nhsrc_port := 80
 DAYNAME := $(shell date +%a)
 database_file := $(database)_$(NUM)_$(ENV).sql
 prod_database_file := $(database)_$(NUM)_production.sql
 superuser := $(shell id -un)
+
+define _start_server
+	cd app-servers && nohup java -jar $(jar_file) --database=$1 --server.port=$2 > log/facilities_assessment.log 2>&1 &
+endef
+
+define _stop_server
+	-pkill -f 'database=$1'
+endef
 
 test:
 	@echo $(database)
@@ -40,16 +50,23 @@ backup_db:
 # </db>
 
 # <server>
-start_server:
-	cd app-servers && nohup java -jar $(jar_file) --database=$(database) --server.port=6001 > log/facilities_assessment.log 2>&1 &
+start_server_jss:
+	$(call _start_server,$(jss_database),$(jss_port))
+
+start_server_nhsrc:
+	$(call _start_server,$(nhsrc_database),$(nhsrc_port))
+
+stop_server_jss:
+	$(call _stop_server,$(jss_database))
+
+stop_server_nhsrc:
+	$(call _stop_server,$(nhsrc_database))
 # </server>
 
 download_file:
 	cd downloads && wget -c --retry-connrefused --tries=0 -O $(outputfile) $(url)
 
 # ALL JSS ENVIRONMENTS
-stop_server:
-	-pkill -f 'database=$(database)'
 
 jss_take_all_db_backup:
 	sh db/take-db-backup.sh
