@@ -1,3 +1,4 @@
 backup/*.sql
 .idea
 facility-assessment-host.iml
+db/backup/jssprod

@@ -5,10 +5,12 @@ jss_database := facilities_assessment_cg
 nhsrc_database := facilities_assessment_nhsrc
 jss_port := 6001
 nhsrc_port := 80
-DAYNAME := $(shell date +%a)
-database_file := $(database)_$(NUM)_$(ENV).sql
+Today_Day_Name := $(shell date +%a)
+jss_database_backup_file := $(jss_database)_$(Day).sql
 prod_database_file := $(database)_$(NUM)_production.sql
 superuser := $(shell id -un)
+nhsrc_prod_server=103.35.123.67
+nhsrc_slave_server=103.35.123.68
 
 define _start_server
 	cd app-servers && nohup java -jar $(jar_file) --database=$1 --server.port=$2 > log/facilities_assessment.log 2>&1 &
@@ -16,6 +18,11 @@ endef
 
 define _stop_server
 	-pkill -f 'database=$1'
+endef
+
+define _restore_db
+	make recreate_db database=$1
+	sudo -u $(superuser) psql $1 < db/backup/$2
 endef
 
 test:
@@ -28,15 +35,8 @@ recreate_db:
 	sudo -u $(superuser) psql postgres -c 'create database $(database) with owner nhsrc'
 	sudo -u $(superuser) psql $(database) -c 'create extension if not exists "uuid-ossp"'
 
-restore_db:
-	make recreate_db database=$(database)
-	sudo -u $(superuser) psql $(database) < db/backup/$(backup)
-
-restore_prod_db:
-	make restore_db database=$(database) backup=$(prod_database_file)
-
-restore_development_db:
-	make restore_db database=$(database) backup=$(database_file)
+restore_jss_db:
+	$(call _restore_db,$(jss_database),$(file))
 
 recreate_schema:
 	-psql -Unhsrc postgres -c 'drop database $(db)';
@@ -46,7 +46,10 @@ recreate_schema:
 	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(db) -schemas=public -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
 
 backup_db:
-	pg_dump $(database) > db/backup/$(database)_$(DAYNAME)_$(ENV).sql
+	pg_dump $(database) > db/backup/$(database)_$(Today_Day_Name)_$(ENV).sql
+
+pull_jss_db:
+	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/db/backup/$(jss_database_backup_file) db/backup/jssprod/
 # </db>
 
 # <server>
@@ -63,6 +66,19 @@ stop_server_nhsrc:
 	$(call _stop_server,$(nhsrc_database))
 # </server>
 
+# <metabase>
+stop_metabase:
+	-pkill -f 'java -jar metabase.jar'
+
+start_metabase:
+	cd metabase && nohup java -jar metabase.jar >> log/metabase.log 2>&1 &
+# </metabase>
+
+# <metabase_db>
+pull_jss_metabase_db:
+	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/metabase/$(metabase_db_file) metabase/backup/jssprod/
+# </metabase_db>
+
 download_file:
 	cd downloads && wget -c --retry-connrefused --tries=0 -O $(outputfile) $(url)
 
@@ -74,30 +90,12 @@ jss_take_all_db_backup:
 	ls -lt db/backup/
 	ls -lt metabase/backup/
 
-# PULL FROM JSS PRODUCTION
-jss_pull_db:
-	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/db/backup/$(database_file) db/backup/
-
 # PUSH TO JSS PRODUCTION
-jss_push_metabase_db:
-	scp metabase/$(metabase_db_file) nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/metabase/
-
 jss_push_server_jar:
 	scp ../facilities-assessment-server/build/libs/$(jar_file) nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/app-servers/cg
 
 
-# JSS PRODUCTION SERVER
-# Common to all environments
-stop_metabase:
-	-pkill -f 'java -jar metabase.jar'
-
-start_metabase:
-	cd metabase && nohup java -jar metabase.jar >> log/metabase.log 2>&1 &
-
 # <nhsrc>
-nhsrc_prod_server=103.35.123.67
-nhsrc_slave_server=103.35.123.68
-nhsrc_server_port=2249
 
 nhsrc_setup_region_data:
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(database) < ../reference-data/nhsrc/regions/regionData.sql
