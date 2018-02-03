@@ -1,0 +1,20 @@
+# <nhsrc_releases>
+# Release 1 - One uploaded first on playstore without a backend
+
+# Release 2
+nhsrc_migrate_release_7_2:
+	make restore_prod_db NUM=1 db=nhsrc
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.2/fix-schema-version.sql
+	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(nhsrc_database) -schemas=public -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.2/cleanData.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.2/LAQSHYA-NQAS-LR.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.2/LAQSHYA-NQAS-OT.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.2/andaman-nicobar.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.2/dakshata.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.2/laqshya-modifications.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.2/updateStateNames.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.2/updateStateShortCode.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.2/create-hmis-table.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) -c "\copy hmis_facility FROM '~/Downloads/Kerala.csv' DELIMITER ',' CSV"
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.2/update-hmis-id.sql
+# </nhsrc_releases>
