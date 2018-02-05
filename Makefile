@@ -45,7 +45,7 @@ recreate_schema:
 	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(db) -schemas=public -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
 
 backup_nhsrc_db:
-	pg_dump $(database) > db/backup/$(database)_$(Today_Day_Name)_$(ENV).sql
+	pg_dump $(database) > db/backup/$(nhsrc_database)_backup.sql
 
 pull_jss_db:
 	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/db/backup/$(jss_database_backup_file) db/backup/jssprod/
