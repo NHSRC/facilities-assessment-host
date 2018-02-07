@@ -82,6 +82,7 @@ pull_jss_metabase_db:
 # </metabase_db>
 
 download_file:
+	rm downloads/$(outputfile)
 	cd downloads && wget -c --retry-connrefused --tries=0 -O $(outputfile) $(url)
 
 jss_take_all_db_backup:
