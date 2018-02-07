@@ -135,3 +135,11 @@ _make_binary:
 create_release: _make_binary
 	cp ../facilities-assessment-server/build/libs/$(jar_file) releases/$(client)/$(release)
 # </local_development>
+
+deploy_server_from_download:
+	cp downloads/$(jar_file) app-servers/
+
+deploy_app_from_download:
+	cp downloads/app.apk app-servers/external/app.apk
+
+deploy_all_from_download: deploy_server_from_download deploy_app_from_download
