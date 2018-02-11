@@ -73,7 +73,7 @@ stop_metabase:
 	-pkill -f 'java -jar metabase.jar'
 
 start_metabase:
-	cd metabase && nohup java -jar metabase.jar >> log/metabase.log 2>&1 &
+	cd metabase && nohup java -Dlog4j.configuration=file:log4j.properties -jar metabase.jar >> log/metabase.log 2>&1 &
 # </metabase>
 
 # <metabase_db>
