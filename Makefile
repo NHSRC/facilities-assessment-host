@@ -143,3 +143,7 @@ deploy_app_from_download:
 	cp downloads/app.apk app-servers/external/app.apk
 
 deploy_all_from_download: deploy_server_from_download deploy_app_from_download
+
+nhsrc_migrate_release_7_3:
+	$(call _restore_db,$(nhsrc_database),golden/facilities_assessment_nhsrc_2_production.sql)
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.3/clearOldLaqshyaChecklist.sql
