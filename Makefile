@@ -6,7 +6,6 @@ nhsrc_database := facilities_assessment_nhsrc
 nhsrc_port := 80
 Today_Day_Name := $(shell date +%a)
 jss_database_backup_file := $(jss_database)_$(Day).sql
-prod_database_file := $(database)_$(NUM)_production.sql
 superuser := $(shell id -un)
 nhsrc_prod_server=103.35.123.67
 nhsrc_slave_server=103.35.123.68
@@ -45,7 +44,7 @@ recreate_schema:
 	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(db) -schemas=public -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
 
 backup_nhsrc_db:
-	pg_dump $(database) > db/backup/$(nhsrc_database)_backup.sql
+	pg_dump $(nhsrc_database) > db/backup/$(nhsrc_database)_$(NUM)_production.sql
 
 pull_jss_db:
 	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/db/backup/$(jss_database_backup_file) db/backup/jssprod/
@@ -97,22 +96,6 @@ jss_push_server_jar:
 
 
 # <nhsrc>
-nhsrc_setup_region_data:
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(database) < ../reference-data/nhsrc/regions/regionData.sql
-
-nhsrc_setup_assessment_tools_data:
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < db/instances/nhsrc/assessment_tools.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/NHSRC_NQAS_DH.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/NHSRC_NQAS_CHC.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/NHSRC_NQAS_PHC.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/NHSRC_NQAS_UPHC.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/NHSRC_KK_DH_SDH_CHC.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/NHSRC_KK_PHC.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/NHSRC_KK_UPHC_APHC.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_db) < ../reference-data/nhsrc/output/standards_short_names.sql
-
-nhsrc_setup_all_data: nhsrc_setup_assessment_tools_data nhsrc_setup_region_data
-
 nhsrc_pull_db:
 	scp -P $(nhsrc_server_port) nhsrc@$(nhsrc_prod_server):/home/nhsrc/facilities-assessment-host/db/backup/$(nhsrc_db)_$(DAY).sql db/backup/$(nhsrc_db)_$(DAY)_Prod.sql
 
@@ -147,3 +130,6 @@ deploy_all_from_download: deploy_server_from_download deploy_app_from_download
 nhsrc_migrate_release_7_3:
 	$(call _restore_db,$(nhsrc_database),golden/facilities_assessment_nhsrc_2_production.sql)
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.3/clearOldLaqshyaChecklist.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < ../reference-data/nhsrc/output/LAQSHYA-NQAS-OT.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < ../reference-data/nhsrc/output/LAQSHYA-NQAS-LR.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.3/deleteCheckpointsWithNameMaximum.sql
