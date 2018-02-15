@@ -36,6 +36,9 @@ recreate_db:
 restore_jss_db:
 	$(call _restore_db,$(jss_database),$(file))
 
+restore_nhsrc_db:
+	$(call _restore_db,$(nhsrc_database),$(file))
+
 recreate_schema:
 	-psql -Unhsrc postgres -c 'drop database $(db)';
 	-psql -Unhsrc postgres -c 'create database $(db) with owner nhsrc';
