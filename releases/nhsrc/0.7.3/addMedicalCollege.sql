@@ -1,0 +1,1 @@
+INSERT INTO facility_type (name, short_name) VALUES ('Medical College', 'MC');
