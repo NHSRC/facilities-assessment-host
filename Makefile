@@ -6,7 +6,7 @@ nhsrc_database := facilities_assessment_nhsrc
 nhsrc_port := 80
 Today_Day_Name := $(shell date +%a)
 jss_database_backup_file := $(jss_database)_$(Day).sql
-superuser := $(shell id -un)
+database_role := $(shell id -un)
 nhsrc_prod_server=103.35.123.67
 nhsrc_slave_server=103.35.123.68
 
@@ -20,7 +20,7 @@ endef
 
 define _restore_db
 	make recreate_db database=$1
-	sudo -u $(superuser) psql $1 < db/backup/$2
+	sudo -u $(database_role) psql $1 < db/backup/$2
 endef
 
 test:
@@ -28,10 +28,10 @@ test:
 
 # <db>
 recreate_db:
-	sudo -u $(superuser) psql postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$(database)' AND pid <> pg_backend_pid()"
-	-sudo -u $(superuser) psql postgres -c 'drop database $(database)'
-	sudo -u $(superuser) psql postgres -c 'create database $(database) with owner nhsrc'
-	sudo -u $(superuser) psql $(database) -c 'create extension if not exists "uuid-ossp"'
+	sudo -u $(database_role) psql postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$(database)' AND pid <> pg_backend_pid()"
+	-sudo -u $(database_role) psql postgres -c 'drop database $(database)'
+	sudo -u $(database_role) psql postgres -c 'create database $(database) with owner nhsrc'
+	sudo -u $(database_role) psql $(database) -c 'create extension if not exists "uuid-ossp"'
 
 restore_jss_db:
 	$(call _restore_db,$(jss_database),$(file))
