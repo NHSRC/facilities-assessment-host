@@ -72,7 +72,7 @@ stop_server_nhsrc:
 
 # <metabase>
 stop_metabase:
-	-pkill -f 'java -jar metabase.jar'
+	-pkill -f 'java -Dlog4j.configuration=file:log4j.properties -jar metabase.jar'
 
 start_metabase:
 	cd metabase && nohup java -Dlog4j.configuration=file:log4j.properties -jar metabase.jar >> log/metabase.log 2>&1 &
