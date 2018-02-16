@@ -1,0 +1,10 @@
+[Unit]
+Description = Facilities Assessment Service
+After = postgresql.service
+
+[Service]
+ExecStart = /home/nhsrc1/facilities-assessment-host/deployments/nhsrc/fa-service-start.sh
+ExecStop = /home/nhsrc1/facilities-assessment-host/deployments/nhsrc/fa-service-stop.sh
+
+[Install]
+WantedBy = multi-user.target

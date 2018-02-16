@@ -83,6 +83,9 @@ pull_jss_metabase_db:
 	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/metabase/$(metabase_db_file) metabase/backup/jssprod/
 # </metabase_db>
 
+start_all_nhsrc: start_server_nhsrc start_metabase
+stop_all_nhsrc: stop_server_nhsrc stop_metabase
+
 download_file:
 	rm downloads/$(outputfile)
 	cd downloads && wget -c --retry-connrefused --tries=0 -O $(outputfile) $(url)
