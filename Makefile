@@ -85,6 +85,7 @@ pull_jss_metabase_db:
 
 start_all_nhsrc: start_server_nhsrc start_metabase
 stop_all_nhsrc: stop_server_nhsrc stop_metabase
+	ps -ef | grep java
 
 download_file:
 	rm downloads/$(outputfile)
