@@ -142,3 +142,4 @@ nhsrc_migrate_release_7_3:
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.3/deleteCheckpointsWithNameMaximum.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.3/addMedicalCollege.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.3/clearOSCEChecklist.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.3/dropViews.sql
