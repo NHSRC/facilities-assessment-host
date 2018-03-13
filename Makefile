@@ -23,6 +23,10 @@ define _restore_db
 	sudo -u $(postgres_user) psql $1 < db/backup/$2
 endef
 
+define _flyway_migrate
+	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$1 -schemas=public -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
+endef
+
 test:
 	@echo $(database)
 
@@ -44,10 +48,10 @@ recreate_schema:
 	-psql -Unhsrc postgres -c 'create database $(db) with owner nhsrc';
 	-psql $(db) -c 'create extension if not exists "uuid-ossp"';
 	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(db) -schemas=public clean
-	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(db) -schemas=public -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
+	$(call _flyway_migrate,$(db))
 
 backup_nhsrc_db:
-	pg_dump $(nhsrc_database) > db/backup/$(nhsrc_database)_$(NUM)_production.sql
+	sudo -u $(postgres_user) pg_dump $(nhsrc_database) > db/backup/$(nhsrc_database)_$(NUM)_production.sql
 
 pull_jss_db:
 	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/db/backup/$(jss_database_backup_file) db/backup/jssprod/
@@ -112,8 +116,6 @@ nhsrc_push_db:
 
 
 # <local_development>
-_flyway_migrate:
-	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(database) -schemas=$(schema) -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
 
 _get_server_jar:
 	cd ../facilities-assessment-server && make binary
@@ -144,6 +146,12 @@ nhsrc_migrate_release_7_3:
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.3/clearOSCEChecklist.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.3/dropViews.sql
 
+# prod
 nhsrc_migrate_release_7_4:
 	$(call _restore_db,$(nhsrc_database),golden/facilities_assessment_nhsrc_3_production.sql)
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.4/reintroduceMaxAsInactive.sql
+	sudo -u $(postgres_user) psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.4/reintroduceMaxAsInactive.sql
+
+nhsrc_migrate_release_7_5:
+	$(call _restore_db,$(nhsrc_database),facilities_assessment_nhsrc_4_production.sql)
+	$(call _flyway_migrate,$(nhsrc_database))
+	sudo -u $(postgres_user) psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.5/indicators.sql
