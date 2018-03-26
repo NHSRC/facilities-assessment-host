@@ -157,4 +157,4 @@ nhsrc_migrate_release_7_5_local:
 	make nhsrc_migrate_release_7_5
 
 nhsrc_migrate_release_7_5:
-	sudo -u $(postgres_user) psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.5/indicators.sql
+	sudo -u $(postgres_user) psql -v ON_ERROR_STOP=1 --echo-all -U$(postgres_user) $(nhsrc_database) < releases/nhsrc/0.7.5/indicators.sql
