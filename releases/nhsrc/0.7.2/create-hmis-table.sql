@@ -1,4 +1,4 @@
-CREATE table hmis_facility (
+CREATE table if not exists hmis_facility (
   FacilityId VARCHAR(100),
   FacilityName VARCHAR(100),
   FacilityType VARCHAR(100),

@@ -58,6 +58,10 @@ pull_jss_db:
 
 schedule_backup:
 	sudo sh schedule-backup.sh
+
+export_nhsrc_db_data_only:
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < db/deleteMostAssessments.sql
+	sudo -u $(postgres_user) pg_dump $(nhsrc_database) -a --inserts -T schema_version -T users -T user_role > db/backup/data_only.sql
 # </db>
 
 # <server>
@@ -136,21 +140,7 @@ deploy_app_from_download:
 
 deploy_all_from_download: deploy_server_from_download deploy_app_from_download
 
-nhsrc_migrate_release_7_3:
-	$(call _restore_db,$(nhsrc_database),golden/facilities_assessment_nhsrc_2_production.sql)
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.3/clearOldLaqshyaChecklist.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < ../reference-data/nhsrc/output/LAQSHYA-NQAS-OT.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < ../reference-data/nhsrc/output/LAQSHYA-NQAS-LR.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.3/deleteCheckpointsWithNameMaximum.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.3/addMedicalCollege.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.3/clearOSCEChecklist.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.3/dropViews.sql
-
 # prod
-nhsrc_migrate_release_7_4:
-	$(call _restore_db,$(nhsrc_database),golden/facilities_assessment_nhsrc_3_production.sql)
-	sudo -u $(postgres_user) psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.4/reintroduceMaxAsInactive.sql
-
 nhsrc_migrate_release_7_5_local:
 	$(call _restore_db,$(nhsrc_database),facilities_assessment_nhsrc_4_production.sql)
 	$(call _flyway_migrate,$(nhsrc_database))
@@ -158,3 +148,8 @@ nhsrc_migrate_release_7_5_local:
 
 nhsrc_migrate_release_7_5:
 	sudo -u $(postgres_user) psql -v ON_ERROR_STOP=1 --echo-all -U$(postgres_user) $(nhsrc_database) < releases/nhsrc/0.7.5/indicators.sql
+
+nhsrc_migrate_release_7_6:
+	sudo -u $(postgres_user) psql -v ON_ERROR_STOP=1 --echo-all -U$(postgres_user) $(nhsrc_database) < releases/nhsrc/0.7.6/fix-me-with-doubledot.sql
+
+nhsrc_migrate_release_7_6_local: nhsrc_migrate_release_7_5_local nhsrc_migrate_release_7_6

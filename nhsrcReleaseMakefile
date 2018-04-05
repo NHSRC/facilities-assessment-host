@@ -34,3 +34,17 @@ nhsrc_setup_region_data:
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(database) < ../reference-data/nhsrc/regions/regionData.sql
 
 nhsrc_setup_all_data: nhsrc_setup_assessment_tools_data nhsrc_setup_region_data
+
+nhsrc_migrate_release_7_3:
+	$(call _restore_db,$(nhsrc_database),golden/facilities_assessment_nhsrc_2_production.sql)
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.3/clearOldLaqshyaChecklist.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < ../reference-data/nhsrc/output/LAQSHYA-NQAS-OT.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < ../reference-data/nhsrc/output/LAQSHYA-NQAS-LR.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.3/deleteCheckpointsWithNameMaximum.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.3/addMedicalCollege.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.3/clearOSCEChecklist.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.3/dropViews.sql
+
+nhsrc_migrate_release_7_4:
+	$(call _restore_db,$(nhsrc_database),golden/facilities_assessment_nhsrc_3_production.sql)
+	sudo -u $(postgres_user) psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.4/reintroduceMaxAsInactive.sql
