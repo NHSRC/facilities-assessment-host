@@ -153,3 +153,6 @@ nhsrc_migrate_release_7_6:
 	sudo -u $(postgres_user) psql -v ON_ERROR_STOP=1 --echo-all -U$(postgres_user) $(nhsrc_database) < releases/nhsrc/0.7.6/fix-me-with-doubledot.sql
 
 nhsrc_migrate_release_7_6_local: nhsrc_migrate_release_7_5_local nhsrc_migrate_release_7_6
+
+rescore_everything_nhsrc:
+	sudo -u $(postgres_user) psql -v ON_ERROR_STOP=1 --echo-all -U$(postgres_user) $(nhsrc_database) < db/rescore-everything.sql
