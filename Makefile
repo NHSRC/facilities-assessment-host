@@ -141,6 +141,11 @@ deploy_app_from_download:
 deploy_all_from_download: deploy_server_from_download deploy_app_from_download
 
 # prod
+nhsrc_cron_backup:
+	make backup_nhsrc_db postgres_user=postgres NUM=$(date +%a)
+	scp /home/nhsrc1/facilities-assessment-host/db/backup/facilities_assessment_nhsrc_$(date +%a)_production.sql nhsrc2@10.31.37.23:/home/nhsrc2/backup/
+	scp /home/nhsrc1/facilities-assessment-host/metabase/metabase.db.mv.db nhsrc2@10.31.37.23:/home/nhsrc2/backup/metabase.db.mv.db_$(date +%a)
+
 nhsrc_migrate_release_7_5_local:
 	$(call _restore_db,$(nhsrc_database),facilities_assessment_nhsrc_4_production.sql)
 	$(call _flyway_migrate,$(nhsrc_database))
