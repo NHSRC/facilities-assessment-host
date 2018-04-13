@@ -5,3 +5,4 @@ db/backup/jssprod
 **/keystore.p12
 downloads
 temp
+crons/log
