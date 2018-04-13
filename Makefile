@@ -27,6 +27,10 @@ define _flyway_migrate
 	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$1 -schemas=public -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
 endef
 
+define _backup_db
+	sudo -u $(postgres_user) pg_dump $1 > db/backup/$1_$2_production.sql
+endef
+
 test:
 	@echo $(database)
 
@@ -51,7 +55,7 @@ recreate_schema:
 	$(call _flyway_migrate,$(db))
 
 backup_nhsrc_db:
-	sudo -u $(postgres_user) pg_dump $(nhsrc_database) > db/backup/$(nhsrc_database)_$(NUM)_production.sql
+	$(call _backup_db,$(nhsrc_database),$(NUM))
 
 pull_jss_db:
 	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/db/backup/$(jss_database_backup_file) db/backup/jssprod/
@@ -142,7 +146,7 @@ deploy_all_from_download: deploy_server_from_download deploy_app_from_download
 
 # prod
 nhsrc_cron_backup:
-	make backup_nhsrc_db postgres_user=postgres NUM=$(date +%a)
+	$(call _backup_db,$(nhsrc_database),$(date +%a))
 	scp /home/nhsrc1/facilities-assessment-host/db/backup/facilities_assessment_nhsrc_$(date +%a)_production.sql nhsrc2@10.31.37.23:/home/nhsrc2/backup/
 	scp /home/nhsrc1/facilities-assessment-host/metabase/metabase.db.mv.db nhsrc2@10.31.37.23:/home/nhsrc2/backup/metabase.db.mv.db_$(date +%a)
 
