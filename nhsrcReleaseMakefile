@@ -48,3 +48,12 @@ nhsrc_migrate_release_7_3:
 nhsrc_migrate_release_7_4:
 	$(call _restore_db,$(nhsrc_database),golden/facilities_assessment_nhsrc_3_production.sql)
 	sudo -u $(postgres_user) psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.4/reintroduceMaxAsInactive.sql
+
+
+nhsrc_migrate_release_7_5_local:
+	$(call _restore_db,$(nhsrc_database),facilities_assessment_nhsrc_4_production.sql)
+	$(call _flyway_migrate,$(nhsrc_database))
+	make nhsrc_migrate_release_7_5
+
+nhsrc_migrate_release_7_5:
+	sudo -u $(postgres_user) psql -v ON_ERROR_STOP=1 --echo-all -U$(postgres_user) $(nhsrc_database) < releases/nhsrc/0.7.5/indicators.sql

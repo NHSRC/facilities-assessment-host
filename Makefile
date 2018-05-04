@@ -150,18 +150,15 @@ nhsrc_cron_backup:
 	scp /home/nhsrc1/facilities-assessment-host/db/backup/facilities_assessment_nhsrc_$(date +%a)_production.sql nhsrc2@10.31.37.23:/home/nhsrc2/backup/
 	scp /home/nhsrc1/facilities-assessment-host/metabase/metabase.db.mv.db nhsrc2@10.31.37.23:/home/nhsrc2/backup/metabase.db.mv.db_$(date +%a)
 
-nhsrc_migrate_release_7_5_local:
-	$(call _restore_db,$(nhsrc_database),facilities_assessment_nhsrc_4_production.sql)
-	$(call _flyway_migrate,$(nhsrc_database))
-	make nhsrc_migrate_release_7_5
-
-nhsrc_migrate_release_7_5:
-	sudo -u $(postgres_user) psql -v ON_ERROR_STOP=1 --echo-all -U$(postgres_user) $(nhsrc_database) < releases/nhsrc/0.7.5/indicators.sql
-
 nhsrc_migrate_release_7_6:
 	sudo -u $(postgres_user) psql -v ON_ERROR_STOP=1 --echo-all -U$(postgres_user) $(nhsrc_database) < releases/nhsrc/0.7.6/fix-me-with-doubledot.sql
 
 nhsrc_migrate_release_7_6_local: nhsrc_migrate_release_7_5_local nhsrc_migrate_release_7_6
+
+nhsrc_migrate_release_7_7:
+	sudo -u $(postgres_user) psql -v ON_ERROR_STOP=1 --echo-all -U$(postgres_user) $(nhsrc_database) < releases/nhsrc/0.7.7/updateSortOrders.sql
+
+nhsrc_migrate_release_7_7_local: nhsrc_migrate_release_7_7
 
 rescore_everything_nhsrc:
 	sudo -u $(postgres_user) psql -v ON_ERROR_STOP=1 --echo-all -U$(postgres_user) $(nhsrc_database) < db/rescore-everything.sql
