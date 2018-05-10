@@ -32,7 +32,7 @@ define _backup_db
 endef
 
 test:
-	@echo $(database)
+	@echo $(Today_Day_Name)
 
 # <db>
 recreate_db:
@@ -146,9 +146,9 @@ deploy_all_from_download: deploy_server_from_download deploy_app_from_download
 
 # prod
 nhsrc_cron_backup:
-	$(call _backup_db,$(nhsrc_database),$(date +%a))
-	scp /home/nhsrc1/facilities-assessment-host/db/backup/facilities_assessment_nhsrc_$(date +%a)_production.sql nhsrc2@10.31.37.24:/home/nhsrc2/backup/
-	scp /home/nhsrc1/facilities-assessment-host/metabase/metabase.db.mv.db nhsrc2@10.31.37.24:/home/nhsrc2/backup/metabase.db.mv.db_$(date +%a)
+	$(call _backup_db,$(nhsrc_database),$(Today_Day_Name))
+	scp /home/nhsrc1/facilities-assessment-host/db/backup/facilities_assessment_nhsrc_$(Today_Day_Name)_production.sql nhsrc2@10.31.37.24:/home/nhsrc2/backup/
+	scp /home/nhsrc1/facilities-assessment-host/metabase/metabase.db.mv.db nhsrc2@10.31.37.24:/home/nhsrc2/backup/metabase.db.mv.db_$(Today_Day_Name)
 
 nhsrc_migrate_release_7_6:
 	sudo -u $(postgres_user) psql -v ON_ERROR_STOP=1 --echo-all -U$(postgres_user) $(nhsrc_database) < releases/nhsrc/0.7.6/fix-me-with-doubledot.sql
