@@ -6,3 +6,4 @@ db/backup/jssprod
 downloads
 temp
 crons/log
+metabase/keystore.jks
