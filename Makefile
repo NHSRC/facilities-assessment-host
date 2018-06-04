@@ -5,7 +5,6 @@ jss_database := facilities_assessment_cg
 nhsrc_database := facilities_assessment_nhsrc
 nhsrc_port := 80
 Today_Day_Name := $(shell date +%a)
-jss_database_backup_file := $(jss_database)_$(Day).sql
 postgres_user := $(shell id -un)
 nhsrc_prod_server=103.35.123.67
 nhsrc_slave_server=103.35.123.68
@@ -58,7 +57,10 @@ backup_nhsrc_db:
 	$(call _backup_db,$(nhsrc_database),$(NUM))
 
 pull_jss_db:
-	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/db/backup/$(jss_database_backup_file) db/backup/jssprod/
+	scp igunatmac:/home/nhsrc/facilities-assessment-host/db/backup/$(file) db/backup/
+
+pull_nhsrc_db:
+	scp gunak-main:/home/nhsrc1/facilities-assessment-host/db/backup/$(file) db/backup/
 
 schedule_backup:
 	sudo sh schedule-backup.sh
@@ -150,10 +152,14 @@ nhsrc_cron_backup:
 	scp /home/nhsrc1/facilities-assessment-host/db/backup/facilities_assessment_nhsrc_$(Today_Day_Name)_production.sql nhsrc2@10.31.37.24:/home/nhsrc2/backup/
 	scp /home/nhsrc1/facilities-assessment-host/metabase/metabase.db.mv.db nhsrc2@10.31.37.24:/home/nhsrc2/backup/metabase.db.mv.db_$(Today_Day_Name)
 
-nhsrc_migrate_release_7_7:
-	sudo -u $(postgres_user) psql -v ON_ERROR_STOP=1 --echo-all -U$(postgres_user) $(nhsrc_database) < releases/nhsrc/0.7.7/updateSortOrders.sql
+nhsrc_migrate_release_7_8:
+	$(call _restore_db,$(nhsrc_database),facilities_assessment_nhsrc_Wed_production.sql)
 
-nhsrc_migrate_release_7_7_local: nhsrc_migrate_release_7_7
+jss_migrate_release_7_4:
+	$(call _restore_db,$(jss_database),facilities_assessment_cg_Fri.sql)
+	sudo -u $(postgres_user) psql -v ON_ERROR_STOP=1 --echo-all -U$(postgres_user) $(jss_database) < releases/jss/laqshya-checklist-dh-chc-0.7.4/Maternity-Services.sql
+	sudo -u $(postgres_user) psql -v ON_ERROR_STOP=1 --echo-all -U$(postgres_user) $(jss_database) < releases/jss/laqshya-checklist-dh-chc-0.7.4/opd-anc.sql
+
 
 rescore_everything_nhsrc:
 	sudo -u $(postgres_user) psql -v ON_ERROR_STOP=1 --echo-all -U$(postgres_user) $(nhsrc_database) < db/rescore-everything.sql
