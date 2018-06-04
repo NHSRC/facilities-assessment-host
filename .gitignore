@@ -7,3 +7,4 @@ downloads
 temp
 crons/log
 metabase/keystore.jks
+deployments/jss/*.log
