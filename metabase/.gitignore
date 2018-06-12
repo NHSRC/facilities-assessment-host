@@ -1,4 +1,4 @@
-metabase.db.lock.db
-metabase.db.trace.db
-metabase.db.mv.db
+metabase.db.lock.db*
+metabase.db.trace.db*
+metabase.db.mv.db*
 metabase.jar

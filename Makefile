@@ -6,8 +6,8 @@ nhsrc_database := facilities_assessment_nhsrc
 nhsrc_port := 80
 Today_Day_Name := $(shell date +%a)
 postgres_user := $(shell id -un)
-nhsrc_prod_server=103.35.123.67
-nhsrc_slave_server=103.35.123.68
+nhsrc_prod_server=10.31.37.23
+nhsrc_slave_server=10.31.37.24
 
 define _start_server
 	cd app-servers && nohup java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 > log/facilities_assessment.log 2>&1 &
@@ -120,6 +120,9 @@ jss_push_server_jar:
 nhsrc_pull_db:
 	scp -P $(nhsrc_server_port) nhsrc@$(nhsrc_prod_server):/home/nhsrc/facilities-assessment-host/db/backup/$(nhsrc_db)_$(DAY).sql db/backup/$(nhsrc_db)_$(DAY)_Prod.sql
 
+nhsrc_pull_metabase_db:
+	scp gunak-main:/home/nhsrc1/facilities-assessment-host/metabase/metabase.db.mv.db metabase/nhsrc/
+
 nhsrc_push_db:
 	scp -P $(nhsrc_server_port) db/backup/$(database_file) nhsrc@$(nhsrc_prod_server):/home/nhsrc/facilities-assessment-host/db/backup/
 # </nhsrc>
@@ -163,3 +166,16 @@ jss_migrate_release_7_4:
 
 rescore_everything_nhsrc:
 	sudo -u $(postgres_user) psql -v ON_ERROR_STOP=1 --echo-all -U$(postgres_user) $(nhsrc_database) < db/rescore-everything.sql
+
+nhsrc_prepare_for_release:
+	cp app-servers/facilities-assessment-server-0.0.1-SNAPSHOT.jar downloads/facilities-assessment-server-0.0.1-SNAPSHOT.jar.before.release
+	make backup_nhsrc_db NUM=before-release postgres_user=postgres
+
+nhsrc_release:
+	make stop_metabase
+	cp downloads/metabase.db.mv.db metabase/
+	make start_metabase
+	make stop_server_nhsrc
+	cp downloads/facilities-assessment-server-0.0.1-SNAPSHOT.jar app-servers/
+	make start_server_nhsrc
+	tail -n300 -f app-servers/log/facilities_assessment.log

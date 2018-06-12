@@ -1,10 +1,10 @@
 backup/*.sql
 .idea
 facility-assessment-host.iml
-db/backup/jssprod
 **/keystore.p12
 downloads
 temp
 crons/log
 metabase/keystore.jks
 deployments/jss/*.log
+db/backup/*.sql
