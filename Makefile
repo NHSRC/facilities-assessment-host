@@ -200,17 +200,27 @@ prepare_metabase_server_for_release:
 	cp metabase/metabase.jar downloads/metabase.jar.beforeRelease
 
 prepare_gunak_web_for_release:
-	rm -rf downloads/app-before-release/*
 	-mkdir downloads/app-before-release/
+	rm -rf downloads/app-before-release/*
 	cp app-servers/app/*.* downloads/app-before-release/
 
-nhsrc_release_server:
+release_server:
+	make stop_server_nhsrc
+	cp downloads/facilities-assessment-server-0.0.1-SNAPSHOT.jar app-servers/
+	make start_server_nhsrc
+
+	tail -n300 -f app-servers/log/facilities_assessment.log
+
+release_metabase_db:
 	make stop_metabase
 	cp downloads/metabase.db.mv.db metabase/
 	make start_metabase
 
-nhsrc_release_metabase:
+release_metabase_server:
 	make stop_server_nhsrc
-	cp downloads/facilities-assessment-server-0.0.1-SNAPSHOT.jar app-servers/
+	cp downloads/metabase.jar metabase/
 	make start_server_nhsrc
-	tail -n300 -f app-servers/log/facilities_assessment.log
+
+release_gunak_web:
+	rm -rf app-servers/app/*
+	cp -r downloads/app/* app-servers/app/
