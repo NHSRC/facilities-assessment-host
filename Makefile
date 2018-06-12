@@ -171,10 +171,12 @@ nhsrc_prepare_for_release:
 	cp app-servers/facilities-assessment-server-0.0.1-SNAPSHOT.jar downloads/facilities-assessment-server-0.0.1-SNAPSHOT.jar.before.release
 	make backup_nhsrc_db NUM=before-release postgres_user=postgres
 
-nhsrc_release:
+nhsrc_release_server:
 	make stop_metabase
 	cp downloads/metabase.db.mv.db metabase/
 	make start_metabase
+
+nhsrc_release_metabase:
 	make stop_server_nhsrc
 	cp downloads/facilities-assessment-server-0.0.1-SNAPSHOT.jar app-servers/
 	make start_server_nhsrc
