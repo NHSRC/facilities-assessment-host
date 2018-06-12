@@ -184,6 +184,11 @@ publish_metabase_server_to_nhsrc_prod:
 	scp metabase/nhsrc/metabase.jar gunak-main:/home/nhsrc1/facilities-assessment-host/downloads/
 	$(call _execute_on_nhsrc_prod,prepare_metabase_server_for_release)
 
+publish_gunak_web_to_nhsrc_prod:
+	cd ../gunak-web-app && make deploy_gunak_server
+	scp -r app-servers/app/*.* gunak-main:/home/nhsrc1/facilities-assessment-host/downloads/app/
+	$(call _execute_on_nhsrc_prod,prepare_gunak_web_for_release)
+
 prepare_server_for_release:
 	cp app-servers/facilities-assessment-server-0.0.1-SNAPSHOT.jar downloads/facilities-assessment-server-0.0.1-SNAPSHOT.jar.before.release
 	make backup_nhsrc_db NUM=before-release postgres_user=postgres
@@ -193,6 +198,11 @@ prepare_metabase_db_for_release:
 
 prepare_metabase_server_for_release:
 	cp metabase/metabase.jar downloads/metabase.jar.beforeRelease
+
+prepare_gunak_web_for_release:
+	rm -rf downloads/app-before-release/*
+	-mkdir downloads/app-before-release/
+	cp app-servers/app/*.* downloads/app-before-release/
 
 nhsrc_release_server:
 	make stop_metabase
