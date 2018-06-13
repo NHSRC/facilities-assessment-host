@@ -208,18 +208,19 @@ release_server:
 	make stop_server_nhsrc
 	cp downloads/facilities-assessment-server-0.0.1-SNAPSHOT.jar app-servers/
 	make start_server_nhsrc
-
 	tail -n300 -f app-servers/log/facilities_assessment.log
 
 release_metabase_db:
 	make stop_metabase
 	cp downloads/metabase.db.mv.db metabase/
 	make start_metabase
+	tail -n300 -f metabase/log/metabase.log
 
 release_metabase_server:
 	make stop_server_nhsrc
 	cp downloads/metabase.jar metabase/
-	make start_server_nhsrc
+	make start_metabase
+	tail -n300 -f metabase/log/metabase.log
 
 release_gunak_web:
 	rm -rf app-servers/app/*
