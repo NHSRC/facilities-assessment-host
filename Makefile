@@ -179,7 +179,7 @@ rescore_everything_nhsrc:
 
 publish_server_to_nhsrc_prod:
 	cd ../facilities-assessment-server && make build_server
-	scp build/libs/facilities-assessment-server-0.0.1-SNAPSHOT.jar gunak-main:/home/nhsrc1/facilities-assessment-host/downloads/
+	cd ../facilities-assessment-server && scp build/libs/facilities-assessment-server-0.0.1-SNAPSHOT.jar gunak-main:/home/nhsrc1/facilities-assessment-host/downloads/
 	$(call _execute_on_nhsrc_prod,prepare_server_for_release)
 
 publish_metabase_db_to_nhsrc_prod:
