@@ -162,6 +162,12 @@ nhsrc_cron_backup:
 nhsrc_migrate_release_7_8:
 	$(call _restore_db,$(nhsrc_database),facilities_assessment_nhsrc_Wed_production.sql)
 
+nhsrc_migrate_release_7_9:
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.9-kayakalp-checklist-update/DH_SDH_CHC_27_12_17.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.9-kayakalp-checklist-update/PHC_27_12_17.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.9-kayakalp-checklist-update/UPHC_APHC_27_12_17.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < releases/nhsrc/0.7.9-kayakalp-checklist-update/update_kayakalp_checklist_timestamp.sql
+
 jss_migrate_release_7_4:
 	$(call _restore_db,$(jss_database),facilities_assessment_cg_Fri.sql)
 	sudo -u $(postgres_user) psql -v ON_ERROR_STOP=1 --echo-all -U$(postgres_user) $(jss_database) < releases/jss/laqshya-checklist-dh-chc-0.7.4/Maternity-Services.sql
