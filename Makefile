@@ -165,6 +165,12 @@ nhsrc_migrate_release_7_9:
 	psql --host=localhost --dbname=$(nhsrc_database) --username=nhsrc -v ON_ERROR_STOP=1 --echo-all < releases/nhsrc/0.7.9-kayakalp-checklist-update/UPHC_APHC_27_12_17.sql
 	psql --host=localhost --dbname=$(nhsrc_database) --username=nhsrc -v ON_ERROR_STOP=1 --echo-all < releases/nhsrc/0.7.9-kayakalp-checklist-update/update_kayakalp_checklist_timestamp.sql
 
+jss_migrate:
+#	make restore_jss_db file=facilities_assessment_cg_Wed.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(jss_database) < releases/jss/anc-opd-update/checkpoint-inactivate.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(jss_database) < releases/jss/anc-opd-update/add-me.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(jss_database) < releases/jss/anc-opd-update/add-cp.sql
+
 rescore_everything_nhsrc:
 	psql --host=localhost --dbname=$(nhsrc_database) --username=nhsrc -v ON_ERROR_STOP=1 --echo-all < db/rescore-everything.sql
 
