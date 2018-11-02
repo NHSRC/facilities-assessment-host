@@ -10,7 +10,7 @@ nhsrc_prod_server=10.31.37.23
 nhsrc_slave_server=10.31.37.24
 
 define _start_server
-	cd app-servers && nohup java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 > log/facilities_assessment.log 2>&1 &
+	cd app-servers && nohup java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 --fa.secure=$4> log/facilities_assessment.log 2>&1 &
 endef
 
 define _stop_server
@@ -76,10 +76,10 @@ export_nhsrc_db_data_only:
 
 # <server>
 start_server_jss:
-	$(call _start_server,$(jss_database),6001,6002)
+	$(call _start_server,$(jss_database),6001,6002,false)
 
 start_server_nhsrc:
-	$(call _start_server,$(nhsrc_database),80,443)
+	$(call _start_server,$(nhsrc_database),80,443,true)
 
 stop_server_jss:
 	$(call _stop_server,$(jss_database))
@@ -170,6 +170,7 @@ jss_migrate:
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(jss_database) < releases/jss/anc-opd-update/checkpoint-inactivate.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(jss_database) < releases/jss/anc-opd-update/add-me.sql
 	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(jss_database) < releases/jss/anc-opd-update/add-cp.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(jss_database) < releases/jss/anc-opd-update/add-facilities-adhoc.sql
 
 rescore_everything_nhsrc:
 	psql --host=localhost --dbname=$(nhsrc_database) --username=nhsrc -v ON_ERROR_STOP=1 --echo-all < db/rescore-everything.sql
