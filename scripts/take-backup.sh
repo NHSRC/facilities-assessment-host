@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
+if [[ -z "${IMPLEMENTATION_NAME}" ]]; then
+echo "env var \$IMPLEMENTATION_NAME not found"; exit 1;
+fi
+
 PROJECT_DIR=$(dirname $(readlink -f $(dirname "$0")))
 BACKUP_DIR=${PROJECT_DIR}/backup
 METABASE_DIR=${PROJECT_DIR}/metabase
