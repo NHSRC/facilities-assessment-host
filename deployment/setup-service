@@ -2,19 +2,17 @@
 set -e
 
 if [[ $(id -u) -ne 0 ]] ; then echo "root/sudo privileges required" ; exit 1 ; fi
-
-if [[ "$1" == "jss" ]]; then IMPL_NAME="jss"
-elif [[ "$1" == "nhsrc" ]]; then IMPL_NAME="nhsrc"
-else echo "Usage: sudo ./setup-service (jss | nhsrc)"; exit 1;
+if [[ -z "${IMPLEMENTATION_NAME}" ]]; then
+echo "env var \$IMPLEMENTATION_NAME not found"; exit 1;
 fi
 
 PROJECT_DIR=$(dirname $(readlink -f $(dirname "$0")))
 START_FAB=${PROJECT_DIR}/start-fab.sh
 START_METABASE=${PROJECT_DIR}/start-metabase.sh
-SERVICES=(fab.service metabase.service)
+SERVICES=( fab.service metabase.service )
 
 echo '#!/bin/bash
-make start_'"${IMPL_NAME}"'_server' > ${START_FAB}
+make start_server' > ${START_FAB}
 chmod 755 ${START_FAB}
 echo "Generated ${START_FAB} ..."
 
@@ -23,9 +21,9 @@ make start_metabase_server' > ${START_METABASE}
 chmod 755 ${START_METABASE}
 echo "Generated ${START_METABASE} ..."
 
-for SERVICE in ${SERVICES}
+for SERVICE in "${SERVICES[@]}"
 do
-    sed -e "s;%WORKING_DIR%;${PROJECT_DIR};g" ${PROJECT_DIR}/deployments/${SERVICE}.template > /etc/systemd/system/${SERVICE}
+    sed -e "s;%WORKING_DIR%;${PROJECT_DIR};g" ${PROJECT_DIR}/deployment/${SERVICE}.template > /etc/systemd/system/${SERVICE}
     echo "Created /etc/systemd/system/${SERVICE} ..."
 done
 
