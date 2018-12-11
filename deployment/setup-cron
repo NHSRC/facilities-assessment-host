@@ -2,14 +2,15 @@
 
 if [[ -z "${HEALTHCHECK_UUID}" ]]; then echo "\$HEALTHCHECK_UUID not set"; exit 1; fi
 
-CRON_FILE=/var/spool/cron/crontabs/app
+USER=app
+CRON_FILE=/var/spool/cron/crontabs/${USER}
 PROJECT_DIR=$(dirname $(readlink -f $(dirname "$0")))
 SCRIPT_DIR=${PROJECT_DIR}/scripts
 
 # 2am daily all dbs
 # make sure to set HEALTHCHECK_UUID when running this script
 echo "0 2 * * * ${SCRIPT_DIR}/take-backup.sh && curl --retry 3 https://hc-ping.com/${HEALTHCHECK_UUID}" > ${CRON_FILE}
-chown app:crontab ${CRON_FILE}
+chown ${USER}:crontab ${CRON_FILE}
 chmod 600 ${CRON_FILE}
 echo "Generated ${CRON_FILE}"
 
