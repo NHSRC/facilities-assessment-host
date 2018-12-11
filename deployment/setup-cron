@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+CRON_FILE=/var/spool/cron/crontabs/app
+PROJECT_DIR=$(dirname $(readlink -f $(dirname "$0")))
+SCRIPT_DIR=${PROJECT_DIR}/scripts
+
+#2am daily all dbs
+echo "0 2 * * * ${SCRIPT_DIR}/take-backup.sh && curl --retry 3 https://hc-ping.com/${HEALTHCHECK_UUID}" > ${CRON_FILE}
+
+systemctl reload cron

@@ -1,8 +1,9 @@
 jar_file=facilities-assessment-server-0.0.1-SNAPSHOT.jar
 metabase_db_file=metabase.db.mv.db
 
-jss_database := facilities_assessment_cg
-nhsrc_database := facilities_assessment_nhsrc
+database := facilities_assessment
+jss_database := facilities_assessment
+nhsrc_database := facilities_assessment
 nhsrc_port := 80
 Today_Day_Name := $(shell date +%a)
 postgres_user := $(shell id -un)
@@ -10,10 +11,14 @@ nhsrc_prod_server=10.31.37.23
 nhsrc_slave_server=10.31.37.24
 
 define _start_server
-	cd app-servers && nohup java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 --fa.secure=$4> log/facilities_assessment.log 2>&1 &
+    cd app-servers && java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 --fa.secure=$4 >> log/facilities_assessment.log 2>&1
 endef
 
-define _stop_server
+define _start_daemon
+	cd app-servers && nohup java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 --fa.secure=$4 >> log/facilities_assessment.log 2>&1 &
+endef
+
+define _stop_daemon
 	-pkill -f 'database=$1'
 endef
 
@@ -44,11 +49,14 @@ recreate_db:
 	sudo -u $(postgres_user) psql postgres -c 'create database $(database) with owner nhsrc'
 	sudo -u $(postgres_user) psql $(database) -c 'create extension if not exists "uuid-ossp"'
 
-restore_jss_db:
-	$(call _restore_db,$(jss_database),$(file))
+restore_db:
+	$(call _restore_db,$(database),$(file))
 
-restore_nhsrc_db:
-	$(call _restore_db,$(nhsrc_database),$(file))
+#restore_jss_db:
+#	$(call _restore_db,$(jss_database),$(file))
+#
+#restore_nhsrc_db:
+#	$(call _restore_db,$(nhsrc_database),$(file))
 
 recreate_schema:
 	-psql -Unhsrc postgres -c 'drop database $(db)';
@@ -58,7 +66,7 @@ recreate_schema:
 	$(call _flyway_migrate,$(db))
 
 backup_nhsrc_db:
-	$(call _backup_db,$(nhsrc_database),$(NUM))
+	$(call _backup_db,$(database),$(NUM))
 
 pull_jss_db:
 	scp igunatmac:/home/nhsrc/facilities-assessment-host/db/backup/$(file) db/backup/
@@ -74,19 +82,30 @@ export_nhsrc_db_data_only:
 	sudo -u $(postgres_user) pg_dump $(nhsrc_database) -a --inserts -T schema_version -T users -T user_role > db/backup/data_only.sql
 # </db>
 
-# <server>
-start_server_jss:
-	$(call _start_server,$(jss_database),6001,6002,false)
+# <service>
+start_server:
+	$(call _start_server,$(database),80,443,false)
 
-start_server_nhsrc:
-	$(call _start_server,$(nhsrc_database),80,443,true)
+# start_nhsrc_server:
+#	$(call _start_server,$(nhsrc_database),80,443,false)
+# </service>
 
-stop_server_jss:
-	$(call _stop_server,$(jss_database))
+# <daemon>
+start_daemon:
+	$(call _start_daemon,$(database),80,443,false)
 
-stop_server_nhsrc:
-	$(call _stop_server,$(nhsrc_database))
-# </server>
+#start_daemon_jss:
+#	$(call _start_daemon,$(jss_database),6001,6002,false)
+
+#start_daemon_nhsrc:
+#	$(call _start_daemon,$(nhsrc_database),80,443,true)
+
+#stop_daemon_jss:
+#	$(call _stop_daemon,$(jss_database))
+
+#stop_daemon_nhsrc:
+#	$(call _stop_daemon,$(nhsrc_database))
+# </daemon>
 
 # <metabase>
 stop_metabase:
@@ -94,6 +113,9 @@ stop_metabase:
 
 start_metabase:
 	cd metabase && nohup java -Dlog4j.configuration=file:log4j.properties -jar metabase.jar >> log/metabase.log 2>&1 &
+
+start_metabase_server:
+	cd metabase && java -Dlog4j.configuration=file:log4j.properties -jar metabase.jar >> log/metabase.log 2>&1
 # </metabase>
 
 # <metabase_db>
@@ -101,8 +123,8 @@ pull_jss_metabase_db:
 	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/metabase/$(metabase_db_file) metabase/backup/jssprod/
 # </metabase_db>
 
-start_all_nhsrc: start_server_nhsrc start_metabase
-stop_all_nhsrc: stop_server_nhsrc stop_metabase
+start_all_nhsrc: start_daemon_nhsrc start_metabase
+stop_all_nhsrc: stop_daemon_nhsrc stop_metabase
 	ps -ef | grep java
 
 download_file:
@@ -160,17 +182,17 @@ nhsrc_cron_backup:
 	scp /home/nhsrc1/facilities-assessment-host/metabase/metabase.db.mv.db nhsrc2@10.31.37.24:/home/nhsrc2/backup/metabase.db.mv.db_$(Today_Day_Name)
 
 nhsrc_migrate_release_7_9:
-	psql --host=localhost --dbname=$(nhsrc_database) --username=nhsrc -v ON_ERROR_STOP=1 --echo-all < releases/nhsrc/0.7.9-kayakalp-checklist-update/DH_SDH_CHC_27_12_17.sql
-	psql --host=localhost --dbname=$(nhsrc_database) --username=nhsrc -v ON_ERROR_STOP=1 --echo-all < releases/nhsrc/0.7.9-kayakalp-checklist-update/PHC_27_12_17.sql
-	psql --host=localhost --dbname=$(nhsrc_database) --username=nhsrc -v ON_ERROR_STOP=1 --echo-all < releases/nhsrc/0.7.9-kayakalp-checklist-update/UPHC_APHC_27_12_17.sql
-	psql --host=localhost --dbname=$(nhsrc_database) --username=nhsrc -v ON_ERROR_STOP=1 --echo-all < releases/nhsrc/0.7.9-kayakalp-checklist-update/update_kayakalp_checklist_timestamp.sql
+	psql --host=localhost --dbname=$(database) --username=nhsrc -v ON_ERROR_STOP=1 --echo-all < releases/nhsrc/0.7.9-kayakalp-checklist-update/DH_SDH_CHC_27_12_17.sql
+	psql --host=localhost --dbname=$(database) --username=nhsrc -v ON_ERROR_STOP=1 --echo-all < releases/nhsrc/0.7.9-kayakalp-checklist-update/PHC_27_12_17.sql
+	psql --host=localhost --dbname=$(database) --username=nhsrc -v ON_ERROR_STOP=1 --echo-all < releases/nhsrc/0.7.9-kayakalp-checklist-update/UPHC_APHC_27_12_17.sql
+	psql --host=localhost --dbname=$(database) --username=nhsrc -v ON_ERROR_STOP=1 --echo-all < releases/nhsrc/0.7.9-kayakalp-checklist-update/update_kayakalp_checklist_timestamp.sql
 
 jss_migrate:
 #	make restore_jss_db file=facilities_assessment_cg_Wed.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(jss_database) < releases/jss/anc-opd-update/checkpoint-inactivate.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(jss_database) < releases/jss/anc-opd-update/add-me.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(jss_database) < releases/jss/anc-opd-update/add-cp.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(jss_database) < releases/jss/anc-opd-update/add-facilities-adhoc.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(database) < releases/jss/anc-opd-update/checkpoint-inactivate.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(database) < releases/jss/anc-opd-update/add-me.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(database) < releases/jss/anc-opd-update/add-cp.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(database) < releases/jss/anc-opd-update/add-facilities-adhoc.sql
 
 rescore_everything_nhsrc:
 	psql --host=localhost --dbname=$(nhsrc_database) --username=nhsrc -v ON_ERROR_STOP=1 --echo-all < db/rescore-everything.sql
@@ -209,9 +231,9 @@ prepare_gunak_web_for_release:
 	cp app-servers/app/*.* downloads/app-before-release/
 
 release_server:
-	make stop_server_nhsrc
+	make stop_daemon_nhsrc
 	cp downloads/facilities-assessment-server-0.0.1-SNAPSHOT.jar app-servers/
-	make start_server_nhsrc
+	make start_daemon_nhsrc
 	tail -n300 -f app-servers/log/facilities_assessment.log
 
 release_metabase_db:
@@ -221,7 +243,7 @@ release_metabase_db:
 	tail -n300 -f metabase/log/metabase.log
 
 release_metabase_server:
-	make stop_server_nhsrc
+	make stop_daemon_nhsrc
 	cp downloads/metabase.jar metabase/
 	make start_metabase
 	tail -n300 -f metabase/log/metabase.log

@@ -1,3 +1,4 @@
+.DS_Store
 backup/*.sql
 .idea
 facility-assessment-host.iml
@@ -8,3 +9,4 @@ crons/log
 metabase/keystore.jks
 deployments/jss/*.log
 db/backup/*.sql
+start-*.sh

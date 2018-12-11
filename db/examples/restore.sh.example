@@ -1,2 +1,0 @@
-drop database facility_assessment
-psql facility_assessment < backup.sql

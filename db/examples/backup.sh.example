@@ -1,5 +1,0 @@
-Cluster backup
-pg_dumpall > cluster_backup
-
-Individual database backup
-pg_dump facility_assessment > backup.sql

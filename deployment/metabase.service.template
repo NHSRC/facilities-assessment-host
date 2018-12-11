@@ -1,0 +1,17 @@
+[Unit]
+Description=Metabase for Facilities Assessment App Server
+After=postgresql.service
+
+[Service]
+User=app
+
+WorkingDirectory=%WORKING_DIR%
+ExecStart=%WORKING_DIR%/start-metabase.sh
+
+SuccessExitStatus=143
+TimeoutStopSec=10
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

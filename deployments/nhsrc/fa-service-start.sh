@@ -1,1 +1,0 @@
-cd /home/nhsrc1/facilities-assessment-host && make start_all_nhsrc
