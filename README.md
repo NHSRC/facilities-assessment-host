@@ -1,5 +1,9 @@
 # facility-assessment-host
 
+### Prerequisites
+1. Java 1.8
+2. Python 2.7 or 3.3+
+
 ### Setup
 1. Configure `sshd` for only key-based logins (Disable password auth)
 2. Disallow ssh access to `root`
@@ -18,3 +22,4 @@
 9. `git clone <this-repo>`    
 10. `cd <this-repo>/scripts/deployment`
 11. `sudo ./setup-all`
+12. Enter credentials of `backupper` IAM user during aws configuration
