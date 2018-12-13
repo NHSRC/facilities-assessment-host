@@ -18,8 +18,9 @@
 7. To be able to bind to privileged ports (less than 1024), do 
     * `setcap cap_net_bind_service+ep /path/to/bin/java` 
     * (see https://confluence.atlassian.com/confkb/permission-denied-error-when-binding-a-port-290750651.html)
-8. `cd /home/app`
-9. `git clone <this-repo>`    
-10. `cd <this-repo>/scripts/deployment`
-11. `sudo ./setup-all`
-12. Enter credentials of `backupper` IAM user during aws configuration
+8. Create approp. directory in s3://samanvay/client-backups/ 
+9. `cd /home/app`
+10. `git clone <this-repo>`    
+11. `cd <this-repo>/scripts/deployment`
+12. `sudo ./setup-all`
+13. Enter credentials of `backupper` IAM user during aws configuration
