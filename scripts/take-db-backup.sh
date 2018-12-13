@@ -8,15 +8,15 @@ LOG_FILE=${BACKUP_DIR}/log/backup_$(date +%a).log
 
 echo "" > ${LOG_FILE}
 
-if [[ -z "${IMPLEMENTATION_NAME}" ]]; then
-echo "env var \$IMPLEMENTATION_NAME is unset" | tee -a ${LOG_FILE} ; exit 1;
+if [[ -z "${S3_BACKUP_DIRNAME}" ]]; then
+echo "env var \$S3_BACKUP_DIRNAME is unset" | tee -a ${LOG_FILE} ; exit 1;
 fi
 
 BACKUP_FILE=${BACKUP_DIR}/facilities_assessment_$(date +%a).sql
 BACKUP_FILE_YDAY=${BACKUP_DIR}/facilities_assessment_$(date --date="yesterday" +%a).sql
 METABASE_SOURCE_FILE=${METABASE_DIR}/metabase.db.mv.db
 METABASE_BACKUP_FILE=${BACKUP_DIR}/metabase.db.mv.db_$(date +%a)
-S3_PATH=s3://samanvay/client-backups/${IMPLEMENTATION_NAME}
+S3_PATH=s3://samanvay/client-backups/${S3_BACKUP_DIRNAME}
 
 echo "[$(date)] Backing up postgres databases to '${BACKUP_FILE}' ..." &>> ${LOG_FILE}
 pg_dump -Unhsrc -hlocalhost -d facilities_assessment > ${BACKUP_FILE}
