@@ -3,7 +3,9 @@ set -e
 
 if [[ $(id -u) -ne 0 ]] ; then echo "root/sudo privileges required" ; exit 1 ; fi
 
-PROJECT_DIR=$(dirname $(readlink -f $(dirname "$0")))
+THIS_DIR=$(readlink -f $(dirname "$0"))
+SCRIPTS_DIR=$(dirname ${THIS_DIR})
+PROJECT_DIR=$(dirname ${SCRIPTS_DIR})
 START_FAB=${PROJECT_DIR}/start-fab.sh
 START_METABASE=${PROJECT_DIR}/start-metabase.sh
 SERVICES=( fab.service metabase.service )
@@ -20,13 +22,13 @@ echo "Generated ${START_METABASE} ..."
 
 for SERVICE in "${SERVICES[@]}"
 do
-    sed -e "s;%WORKING_DIR%;${PROJECT_DIR};g" ${PROJECT_DIR}/deployment/${SERVICE}.template > /etc/systemd/system/${SERVICE}
+    sed -e "s;%WORKING_DIR%;${PROJECT_DIR};g" ${THIS_DIR}/${SERVICE}.template > /etc/systemd/system/${SERVICE}
     echo "Created /etc/systemd/system/${SERVICE} ..."
 done
 
 echo "systemctl daemon-reload ..."
 systemctl daemon-reload
-for SERVICE in ${SERVICES}
+for SERVICE in "${SERVICES[@]}"
 do
     systemctl enable ${SERVICE}
 done

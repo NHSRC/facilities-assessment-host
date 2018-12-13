@@ -2,14 +2,16 @@
 set -e
 
 PROJECT_DIR=$(dirname $(readlink -f $(dirname "$0")))
-LOG_FILE=${PROJECT_DIR}/log/backup.log
+BACKUP_DIR=${PROJECT_DIR}/backup
+METABASE_DIR=${PROJECT_DIR}/metabase
+LOG_FILE=${BACKUP_DIR}/log/backup_$(date +%a).log
+
+echo "" > ${LOG_FILE}
 
 if [[ -z "${IMPLEMENTATION_NAME}" ]]; then
 echo "env var \$IMPLEMENTATION_NAME is unset" | tee -a ${LOG_FILE} ; exit 1;
 fi
 
-BACKUP_DIR=${PROJECT_DIR}/backup
-METABASE_DIR=${PROJECT_DIR}/metabase
 BACKUP_FILE=${BACKUP_DIR}/facilities_assessment_$(date +%a).sql
 BACKUP_FILE_YDAY=${BACKUP_DIR}/facilities_assessment_$(date --date="yesterday" +%a).sql
 METABASE_SOURCE_FILE=${METABASE_DIR}/metabase.db.mv.db
@@ -17,7 +19,7 @@ METABASE_BACKUP_FILE=${BACKUP_DIR}/metabase.db.mv.db_$(date +%a)
 S3_PATH=s3://samanvay/client-backups/${IMPLEMENTATION_NAME}
 
 echo "[$(date)] Backing up postgres databases to '${BACKUP_FILE}' ..." &>> ${LOG_FILE}
-pg_dump -Unhsrc -hlocalhost -d facilities_assessment_cg > ${BACKUP_FILE}
+pg_dump -Unhsrc -hlocalhost -d facilities_assessment > ${BACKUP_FILE}
 echo "[$(date)] Postgres backup complete" &>> ${LOG_FILE}
 
 echo "[$(date)] Backing up metabase to ${METABASE_BACKUP_FILE}" &>> ${LOG_FILE}
