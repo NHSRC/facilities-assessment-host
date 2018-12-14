@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 if [[ -z "${HEALTHCHECK_UUID}" ]]; then echo "\$HEALTHCHECK_UUID not set"; exit 1; fi
+if [[ -z "${S3_BACKUP_DIRNAME}" ]]; then echo "\$S3_BACKUP_DIRNAME not set"; exit 1; fi
 
 USER=app
 CRON_FILE=/var/spool/cron/crontabs/${USER}
@@ -9,11 +10,13 @@ SCRIPTS_DIR=$(dirname ${THIS_DIR})
 #PROJECT_DIR=$(dirname ${SCRIPTS_DIR})
 
 echo "PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin
-LD_LIBRARY_PATH=/usr/local/lib" > ${CRON_FILE}
+LD_LIBRARY_PATH=/usr/local/lib
+S3_BACKUP_DIRNAME=${S3_BACKUP_DIRNAME}" > ${CRON_FILE}
 
 # 2am daily all dbs
 # make sure to set HEALTHCHECK_UUID when running this script
 echo "0 2 * * * ${SCRIPTS_DIR}/take-db-backup.sh && curl --retry 3 https://hc-ping.com/${HEALTHCHECK_UUID}" >> ${CRON_FILE}
+echo "#0 3 10 */2 * ${SCRIPTS_DIR}/renew-letsencrypt.sh && curl --retry 3 https://hc-ping.com/<UUID>" >> ${CRON_FILE}
 chown ${USER}:crontab ${CRON_FILE}
 chmod 600 ${CRON_FILE}
 echo "Generated ${CRON_FILE}"
