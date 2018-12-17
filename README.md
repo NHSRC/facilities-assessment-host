@@ -24,3 +24,4 @@
 11. `cd <this-repo>/scripts/deployment`
 12. `sudo ./setup-all`
 13. Enter credentials of `backupper` IAM user during aws configuration
+14. For NHSRC, also run `sudo ./nhsrc-extra`
