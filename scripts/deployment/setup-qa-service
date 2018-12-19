@@ -3,6 +3,7 @@ set -e
 
 if [[ $(id -u) -ne 0 ]] ; then echo "root/sudo privileges required" ; exit 1 ; fi
 
+USER=app
 THIS_DIR=$(readlink -f $(dirname "$0"))
 SCRIPTS_DIR=$(dirname ${THIS_DIR})
 PROJECT_DIR=$(dirname ${SCRIPTS_DIR})
@@ -19,12 +20,14 @@ fi
 
 echo '#!/bin/bash
 make start_qa_server' > ${START_QA}
+chown ${USER}:${USER} ${START_QA}
 chmod 755 ${START_QA}
 echo "Generated ${START_QA} ..."
 
 echo '#!/bin/bash
 export MB_JETTY_PORT=\"4000\"
 make start_metabase_server' > ${START_METABASE}
+chown ${USER}:${USER} ${START_METABASE}
 chmod 755 ${START_METABASE}
 echo "Generated ${START_METABASE} ..."
 
