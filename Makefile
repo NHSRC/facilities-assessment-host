@@ -2,8 +2,8 @@ jar_file=facilities-assessment-server-0.0.1-SNAPSHOT.jar
 metabase_db_file=metabase.db.mv.db
 
 database := facilities_assessment
-jss_database := facilities_assessment
-nhsrc_database := facilities_assessment
+jss_database := facilities_assessment_cg
+nhsrc_database := facilities_assessment_nhsrc
 nhsrc_port := 80
 Today_Day_Name := $(shell date +%a)
 postgres_user := $(shell id -un)
@@ -52,11 +52,11 @@ recreate_db:
 restore_db:
 	$(call _restore_db,$(database),$(file))
 
-#restore_jss_db:
-#	$(call _restore_db,$(jss_database),$(file))
-#
-#restore_nhsrc_db:
-#	$(call _restore_db,$(nhsrc_database),$(file))
+restore_jss_db:
+	$(call _restore_db,$(jss_database),$(file))
+
+restore_nhsrc_db:
+	$(call _restore_db,$(nhsrc_database),$(file))
 
 recreate_schema:
 	-psql -Unhsrc postgres -c 'drop database $(db)';
@@ -93,19 +93,6 @@ start_server:
 # <daemon>
 start_daemon:
 	$(call _start_daemon,$(database),80,443,false)
-
-#start_daemon_jss:
-#	$(call _start_daemon,$(jss_database),6001,6002,false)
-
-#start_daemon_nhsrc:
-#	$(call _start_daemon,$(nhsrc_database),80,443,true)
-
-#stop_daemon_jss:
-#	$(call _stop_daemon,$(jss_database))
-
-#stop_daemon_nhsrc:
-#	$(call _stop_daemon,$(nhsrc_database))
-# </daemon>
 
 # <metabase>
 stop_metabase:
