@@ -10,3 +10,10 @@ metabase/keystore.jks
 deployments/jss/*.log
 db/backup/*.sql
 start-*.sh
+db/log/*.log
+metabase/log/*.log
+metabase/backup/*
+**/metabase.jar
+**/metabase.db.trace.db
+**/metabase.db.mv.db.bak
+metabase/nhsrc

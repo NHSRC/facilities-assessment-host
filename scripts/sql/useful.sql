@@ -33,9 +33,12 @@ FROM checkpoint c
   INNER JOIN state ON (cl.state_id = state.id OR cl.state_id is NULL)
   INNER JOIN assessment_tool ON assessment_tool.id = cl.assessment_tool_id
   INNER JOIN assessment_tool_mode ON assessment_tool_mode.id = assessment_tool.assessment_tool_mode_id
-where state.name = '' and {{assessment_tool_mode}}]] [[and {{assessment_tool}}]]
+where assessment_tool.name = 'Dakshata'
 GROUP BY state.name, assessment_tool_mode.name, assessment_tool.name, cl.name
 ORDER BY state.name, assessment_tool_mode.name, assessment_tool.name, cl.name;
+
+select * from assessment_tool;
+select * from checklist;
 
 -- Assessment Tool + Checklist + AOC + Standard
 SELECT
@@ -53,7 +56,7 @@ WHERE caoc.checklist_id = c.id AND aoc.id = caoc.area_of_concern_id AND s.area_o
       c.assessment_tool_id = assessment_tool.id AND assessment_tool_mode.id = assessment_tool.assessment_tool_mode_id
       AND c.department_id = department.id AND (state.id = c.state_id OR c.state_id is NULL) AND cp.checklist_id = c.id AND cp.measurable_element_id = me.id AND
       me.standard_id = s.id
-      AND {{assessment_mode}} AND {{state}}
+      AND assessment_tool.name = 'Dakshata' and state.name = 'Chhattisgarh'
 ORDER BY Checklist, area_of_concern, Standard, me.reference;
 
 
