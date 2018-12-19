@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -e
+
+if [[ $(id -u) -ne 0 ]] ; then echo "root/sudo privileges required" ; exit 1 ; fi
+
+THIS_DIR=$(readlink -f $(dirname "$0"))
+SCRIPTS_DIR=$(dirname ${THIS_DIR})
+PROJECT_DIR=$(dirname ${SCRIPTS_DIR})
+START_FAB=${PROJECT_DIR}/start-fab.sh
+START_QA=${PROJECT_DIR}/start-QA-server.sh
+START_METABASE=${PROJECT_DIR}/start-QA-metabase.sh
+SERVICES=( fab.service metabase.service )
+
+if [[ -e ${START_FAB} ]];
+then
+    echo "Is ${PROJECT_DIR} the prod instance? Manually confirm and delete ${START_FAB} to continue setup. Exiting now";
+    exit 1;
+fi
+
+echo '#!/bin/bash
+make start_qa_server' > ${START_QA}
+chmod 755 ${START_QA}
+echo "Generated ${START_QA} ..."
+
+echo '#!/bin/bash
+export MB_JETTY_PORT=\"4000\"
+make start_metabase_server' > ${START_METABASE}
+chmod 755 ${START_METABASE}
+echo "Generated ${START_METABASE} ..."
+
+for SERVICE in "${SERVICES[@]}"
+do
+    sed -e "s;%WORKING_DIR%;${PROJECT_DIR};g" \
+        -e "s;start-fab;start-QA-server;g" \
+        -e "s;start-metabase;start-QA-metabase;g" \
+        ${THIS_DIR}/${SERVICE}.template > /etc/systemd/system/qa-${SERVICE}
+    echo "Created /etc/systemd/system/qa-${SERVICE} ..."
+done
+
+echo "Creating database \"facilities_assessment_qa\" ..."
+cd ${PROJECT_DIR} && make create_qa_db
+
+
+echo "systemctl daemon-reload ..."
+systemctl daemon-reload
+for SERVICE in "${SERVICES[@]}"
+do
+    systemctl enable qa-${SERVICE}
+done

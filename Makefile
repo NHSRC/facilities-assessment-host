@@ -4,6 +4,7 @@ metabase_db_file=metabase.db.mv.db
 database := facilities_assessment
 jss_database := facilities_assessment_cg
 nhsrc_database := facilities_assessment_nhsrc
+qa_database := facilities_assessment_qa
 nhsrc_port := 80
 Today_Day_Name := $(shell date +%a)
 postgres_user := $(shell id -un)
@@ -52,6 +53,9 @@ recreate_db:
 restore_db:
 	$(call _restore_db,$(database),$(file))
 
+create_qa_db:
+	make recreate_db database=$(qa_database) postgres_user=postgres
+
 restore_jss_db:
 	$(call _restore_db,$(jss_database),$(file))
 
@@ -85,6 +89,9 @@ export_nhsrc_db_data_only:
 # <service>
 start_server:
 	$(call _start_server,$(database),80,443,false)
+
+start_qa_server:
+	$(call _start_server,$(qa_database),9001,9002,false)
 
 # start_nhsrc_server:
 #	$(call _start_server,$(nhsrc_database),80,443,false)
