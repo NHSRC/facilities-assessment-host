@@ -12,11 +12,11 @@ nhsrc_prod_server=10.31.37.23
 nhsrc_slave_server=10.31.37.24
 
 define _start_server
-    cd app-servers && java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 --fa.secure=$4 >> log/facilities_assessment.log 2>&1
+    cd app-servers && java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 --fa.secure=$4
 endef
 
 define _start_daemon
-	cd app-servers && nohup java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 --fa.secure=$4 >> log/facilities_assessment.log 2>&1 &
+	cd app-servers && nohup java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 --fa.secure=$4
 endef
 
 define _stop_daemon
