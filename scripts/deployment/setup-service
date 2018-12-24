@@ -11,7 +11,7 @@ START_METABASE=${PROJECT_DIR}/start-metabase.sh
 SERVICES=( fab.service metabase.service )
 
 read -p "FA_BUGSNAG_API_KEY=" FA_BUGSNAG_API_KEY
-read -p "FA_ENV [qa|production] =" FA_ENV
+read -p "FA_ENV [qa|prod] =" FA_ENV
 read -p "FA_IMPLEMENTATION_NAME [JSS|NHSRC] =" FA_IMPLEMENTATION_NAME
 
 echo "#!/bin/bash
