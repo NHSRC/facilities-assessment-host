@@ -22,6 +22,7 @@
 9. `cd /home/app`
 10. `git clone <this-repo>`    
 11. `cd <this-repo>/scripts/deployment`
-12. `sudo ./setup-all`
-13. Enter credentials of `backupper` IAM user during aws configuration
-14. For NHSRC, also run `sudo ./nhsrc-extra`
+12. For QA setup: `sudo ./setup-qa-service`
+13. For prod setup: `sudo ./setup-prod`
+> * Enter credentials of `backupper` IAM user during aws configuration
+> * For NHSRC, also run `sudo ./nhsrc-extra`

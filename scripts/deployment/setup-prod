@@ -4,17 +4,11 @@ set -e
 if ! [[ `command -v pip` ]]; then echo "Install 'pip'"; exit 1; fi
 if [[ $(id -u) -ne 0 ]] ; then echo "root/sudo privileges required" ; exit 1 ; fi
 
-
-read -p "Name of backup directory in S3: " S3_BACKUP_DIRNAME
-read -p "HEALTHCHECK_UUID = " HEALTHCHECK_UUID
-read -p "db username: " DB_USER
-read -p "db password: " DB_PASS
-
-export S3_BACKUP_DIRNAME=${S3_BACKUP_DIRNAME}
-export HEALTHCHECK_UUID=${HEALTHCHECK_UUID}
-
 ./setup-service
 ./setup-cron
+
+read -p "db username: " DB_USER
+read -p "db password: " DB_PASS
 
 su app -c "echo 'localhost:5432:facilities_assessment:${DB_USER}:${DB_PASS}' > ~/.pgpass"
 

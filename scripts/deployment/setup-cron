@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 
-if [[ -z "${HEALTHCHECK_UUID}" ]]; then echo "\$HEALTHCHECK_UUID not set"; exit 1; fi
-if [[ -z "${S3_BACKUP_DIRNAME}" ]]; then echo "\$S3_BACKUP_DIRNAME not set"; exit 1; fi
+if [[ $(id -u) -ne 0 ]] ; then echo "root/sudo privileges required" ; exit 1 ; fi
 
 USER=app
 CRON_FILE=/var/spool/cron/crontabs/${USER}
 THIS_DIR=$(readlink -f $(dirname "$0"))
 SCRIPTS_DIR=$(dirname ${THIS_DIR})
 #PROJECT_DIR=$(dirname ${SCRIPTS_DIR})
+
+read -p "Name of backup directory in S3: " S3_BACKUP_DIRNAME
+read -p "HEALTHCHECK_UUID = " HEALTHCHECK_UUID
 
 echo "PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin
 LD_LIBRARY_PATH=/usr/local/lib
