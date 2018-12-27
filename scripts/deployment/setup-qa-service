@@ -32,7 +32,7 @@ chmod 755 ${START_QA}
 echo "Generated ${START_QA} ..."
 
 echo '#!/bin/bash
-export MB_JETTY_PORT=\"4000\"
+export MB_JETTY_PORT="4000"
 make start_metabase_server' > ${START_METABASE}
 chown ${USER}:${USER} ${START_METABASE}
 chmod 755 ${START_METABASE}
