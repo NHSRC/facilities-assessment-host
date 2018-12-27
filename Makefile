@@ -23,7 +23,7 @@ endef
 
 define _restore_db
 	make recreate_db database=$1
-	sudo -u $(postgres_user) psql $1 < db/backup/$2
+	sudo -u $(postgres_user) psql $1 < $2
 endef
 
 define _flyway_migrate
@@ -51,7 +51,7 @@ recreate_db:
 restore_prod_db:
 	$(call _restore_db,$(database),$(file))
 
-restore_qa_db:
+restore_qa_db: # Arguments - relative file location
 	$(call _restore_db,$(qa_database),$(file))
 
 create_qa_db:
