@@ -52,7 +52,7 @@ restore_prod_db:
 	$(call _restore_db,$(database),$(file))
 
 restore_qa_db:
-	$(call _restore_db,$(database),$(file))
+	$(call _restore_db,$(qa_database),$(file))
 
 create_qa_db:
 	make recreate_db database=$(qa_database) postgres_user=postgres
@@ -63,15 +63,6 @@ recreate_schema:
 	-psql $(db) -c 'create extension if not exists "uuid-ossp"';
 	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(db) -schemas=public clean
 	$(call _flyway_migrate,$(db))
-
-backup_nhsrc_db:
-	$(call _backup_db,$(database),$(NUM))
-
-pull_jss_db:
-	scp igunatmac:/home/nhsrc/facilities-assessment-host/db/backup/$(file) db/backup/
-
-pull_nhsrc_db:
-	scp gunak-main:/home/nhsrc1/facilities-assessment-host/db/backup/$(file) db/backup/
 
 schedule_backup:
 	sudo sh schedule-backup.sh
@@ -144,7 +135,6 @@ _make_binary:
 
 create_release: _make_binary
 	cp ../facilities-assessment-server/build/libs/$(jar_file) releases/$(client)/$(release)
-# </local_development>
 
 deploy_server_from_download:
 	cp downloads/$(jar_file) app-servers/
