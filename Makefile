@@ -2,8 +2,6 @@ jar_file=facilities-assessment-server-0.0.1-SNAPSHOT.jar
 metabase_db_file=metabase.db.mv.db
 
 database := facilities_assessment
-jss_database := facilities_assessment_cg
-nhsrc_database := facilities_assessment_nhsrc
 qa_database := facilities_assessment_qa
 nhsrc_port := 80
 Today_Day_Name := $(shell date +%a)
@@ -50,17 +48,14 @@ recreate_db:
 	sudo -u $(postgres_user) psql postgres -c 'create database $(database) with owner nhsrc'
 	sudo -u $(postgres_user) psql $(database) -c 'create extension if not exists "uuid-ossp"'
 
-restore_db:
+restore_prod_db:
+	$(call _restore_db,$(database),$(file))
+
+restore_qa_db:
 	$(call _restore_db,$(database),$(file))
 
 create_qa_db:
 	make recreate_db database=$(qa_database) postgres_user=postgres
-
-restore_jss_db:
-	$(call _restore_db,$(jss_database),$(file))
-
-restore_nhsrc_db:
-	$(call _restore_db,$(nhsrc_database),$(file))
 
 recreate_schema:
 	-psql -Unhsrc postgres -c 'drop database $(db)';
@@ -80,10 +75,6 @@ pull_nhsrc_db:
 
 schedule_backup:
 	sudo sh schedule-backup.sh
-
-export_nhsrc_db_data_only:
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(nhsrc_database) < db/deleteMostAssessments.sql
-	sudo -u $(postgres_user) pg_dump $(nhsrc_database) -a --inserts -T schema_version -T users -T user_role > db/backup/data_only.sql
 # </db>
 
 # <service>
@@ -92,10 +83,6 @@ start_server:
 
 start_qa_server:
 	$(call _start_server,$(qa_database),9001,9002,false)
-
-# start_nhsrc_server:
-#	$(call _start_server,$(nhsrc_database),80,443,false)
-# </service>
 
 # <daemon>
 start_daemon:
@@ -148,8 +135,6 @@ nhsrc_push_db:
 # </nhsrc>
 
 
-# <local_development>
-
 _get_server_jar:
 	cd ../facilities-assessment-server && make binary
 	cp ../facilities-assessment-server/build/libs/$(jar_file) app-servers/$(env)
@@ -168,80 +153,3 @@ deploy_app_from_download:
 	cp downloads/app.apk app-servers/external/app.apk
 
 deploy_all_from_download: deploy_server_from_download deploy_app_from_download
-
-# prod
-nhsrc_cron_backup:
-	$(call _backup_db,$(nhsrc_database),$(Today_Day_Name))
-	scp /home/nhsrc1/facilities-assessment-host/db/backup/facilities_assessment_nhsrc_$(Today_Day_Name)_production.sql nhsrc2@10.31.37.24:/home/nhsrc2/backup/
-	scp /home/nhsrc1/facilities-assessment-host/metabase/metabase.db.mv.db nhsrc2@10.31.37.24:/home/nhsrc2/backup/metabase.db.mv.db_$(Today_Day_Name)
-
-nhsrc_migrate_release_7_9:
-	psql --host=localhost --dbname=$(database) --username=nhsrc -v ON_ERROR_STOP=1 --echo-all < releases/nhsrc/0.7.9-kayakalp-checklist-update/DH_SDH_CHC_27_12_17.sql
-	psql --host=localhost --dbname=$(database) --username=nhsrc -v ON_ERROR_STOP=1 --echo-all < releases/nhsrc/0.7.9-kayakalp-checklist-update/PHC_27_12_17.sql
-	psql --host=localhost --dbname=$(database) --username=nhsrc -v ON_ERROR_STOP=1 --echo-all < releases/nhsrc/0.7.9-kayakalp-checklist-update/UPHC_APHC_27_12_17.sql
-	psql --host=localhost --dbname=$(database) --username=nhsrc -v ON_ERROR_STOP=1 --echo-all < releases/nhsrc/0.7.9-kayakalp-checklist-update/update_kayakalp_checklist_timestamp.sql
-
-jss_migrate:
-#	make restore_jss_db file=facilities_assessment_cg_Wed.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(database) < releases/jss/anc-opd-update/checkpoint-inactivate.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(database) < releases/jss/anc-opd-update/add-me.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(database) < releases/jss/anc-opd-update/add-cp.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(database) < releases/jss/anc-opd-update/add-facilities-adhoc.sql
-
-rescore_everything_nhsrc:
-	psql --host=localhost --dbname=$(nhsrc_database) --username=nhsrc -v ON_ERROR_STOP=1 --echo-all < db/rescore-everything.sql
-
-publish_server_to_nhsrc_prod:
-	cd ../facilities-assessment-server && make build_server
-	cd ../facilities-assessment-server && scp build/libs/facilities-assessment-server-0.0.1-SNAPSHOT.jar gunak-main:/home/nhsrc1/facilities-assessment-host/downloads/
-	$(call _execute_on_nhsrc_prod,prepare_server_for_release)
-
-publish_metabase_db_to_nhsrc_prod:
-	scp metabase/nhsrc/metabase.db.mv.db gunak-main:/home/nhsrc1/facilities-assessment-host/downloads/
-	$(call _execute_on_nhsrc_prod,prepare_metabase_db_for_release)
-
-publish_metabase_server_to_nhsrc_prod:
-	scp metabase/nhsrc/metabase.jar gunak-main:/home/nhsrc1/facilities-assessment-host/downloads/
-	$(call _execute_on_nhsrc_prod,prepare_metabase_server_for_release)
-
-publish_gunak_web_to_nhsrc_prod:
-	cd ../gunak-web-app && make deploy_gunak_server
-	scp -r app-servers/app/*.* gunak-main:/home/nhsrc1/facilities-assessment-host/downloads/app/
-	$(call _execute_on_nhsrc_prod,prepare_gunak_web_for_release)
-
-prepare_server_for_release:
-	cp app-servers/facilities-assessment-server-0.0.1-SNAPSHOT.jar downloads/facilities-assessment-server-0.0.1-SNAPSHOT.jar.before.release
-	make backup_nhsrc_db NUM=before-release postgres_user=postgres
-
-prepare_metabase_db_for_release:
-	cp metabase/metabase.db.mv.db downloads/metabase.db.mv.db.beforeRelease
-
-prepare_metabase_server_for_release:
-	cp metabase/metabase.jar downloads/metabase.jar.beforeRelease
-
-prepare_gunak_web_for_release:
-	-mkdir downloads/app-before-release/
-	rm -rf downloads/app-before-release/*
-	cp app-servers/app/*.* downloads/app-before-release/
-
-release_server:
-	make stop_daemon_nhsrc
-	cp downloads/facilities-assessment-server-0.0.1-SNAPSHOT.jar app-servers/
-	make start_daemon_nhsrc
-	tail -n300 -f app-servers/log/facilities_assessment.log
-
-release_metabase_db:
-	make stop_metabase
-	cp downloads/metabase.db.mv.db metabase/
-	make start_metabase
-	tail -n300 -f metabase/log/metabase.log
-
-release_metabase_server:
-	make stop_daemon_nhsrc
-	cp downloads/metabase.jar metabase/
-	make start_metabase
-	tail -n300 -f metabase/log/metabase.log
-
-release_gunak_web:
-	rm -rf app-servers/app/*
-	cp -r downloads/app/* app-servers/app/
