@@ -9,16 +9,8 @@ postgres_user := $(shell id -un)
 nhsrc_prod_server=10.31.37.23
 nhsrc_slave_server=10.31.37.24
 
-help:
-	@IFS=$$'\n' ; \
-	help_lines=(`fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//'`); \
-	for help_line in $${help_lines[@]}; do \
-	    IFS=$$'#' ; \
-	    help_split=($$help_line) ; \
-	    help_command=`echo $${help_split[0]} | sed -e 's/^ *//' -e 's/ *$$//'` ; \
-	    help_info=`echo $${help_split[2]} | sed -e 's/^ *//' -e 's/ *$$//'` ; \
-	    printf "%-30s %s\n" $$help_command $$help_info ; \
-	done
+help: ##		Show this help.
+	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
 
 define _start_server
     cd app-servers && java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 --fa.secure=$4
@@ -62,7 +54,7 @@ recreate_db:
 restore_prod_db:
 	$(call _restore_db,$(database),$(file))
 
-restore_qa_db: ## file=relative file location
+restore_qa_db: ##	file=relative file location
 	$(call _restore_db,$(qa_database),$(file))
 
 create_qa_db:
