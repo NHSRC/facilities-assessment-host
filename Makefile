@@ -54,7 +54,7 @@ recreate_db:
 restore_prod_db:
 	$(call _restore_db,$(database),$(file))
 
-restore_qa_db: ##	file=relative file location
+restore_qa_db: ##	file=relative file location; postgres_user=optional, default is current user
 	$(call _restore_db,$(qa_database),$(file))
 
 create_qa_db:
