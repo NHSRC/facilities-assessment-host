@@ -66,6 +66,9 @@ recreate_schema:
 
 schedule_backup:
 	sudo sh schedule-backup.sh
+
+backup_db:
+	pg_dump -Unhsrc -hlocalhost -d facilities_assessment > $(file)
 # </db>
 
 # <service>
