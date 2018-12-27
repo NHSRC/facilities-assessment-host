@@ -103,43 +103,5 @@ download_file:
 	rm downloads/$(outputfile)
 	cd downloads && wget -c --retry-connrefused --tries=0 -O $(outputfile) $(url)
 
-jss_take_all_db_backup:
-	sh db/take-db-backup.sh
-	sh metabase/take-db-backup.sh
-	ls -lt db/backup/
-	ls -lt metabase/backup/
-
-# PUSH TO JSS PRODUCTION
-jss_push_server_jar:
-	scp ../facilities-assessment-server/build/libs/$(jar_file) nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/app-servers/cg
-
-
-# <nhsrc>
-nhsrc_pull_db:
-	scp -P $(nhsrc_server_port) nhsrc@$(nhsrc_prod_server):/home/nhsrc/facilities-assessment-host/db/backup/$(nhsrc_db)_$(DAY).sql db/backup/$(nhsrc_db)_$(DAY)_Prod.sql
-
-nhsrc_pull_metabase_db:
-	scp gunak-main:/home/nhsrc1/facilities-assessment-host/metabase/metabase.db.mv.db metabase/nhsrc/
-
-nhsrc_push_db:
-	scp -P $(nhsrc_server_port) db/backup/$(database_file) nhsrc@$(nhsrc_prod_server):/home/nhsrc/facilities-assessment-host/db/backup/
-# </nhsrc>
-
-
-_get_server_jar:
-	cd ../facilities-assessment-server && make binary
-	cp ../facilities-assessment-server/build/libs/$(jar_file) app-servers/$(env)
-
-_make_binary:
-	cd ../facilities-assessment-server && make binary
-
 create_release: _make_binary
 	cp ../facilities-assessment-server/build/libs/$(jar_file) releases/$(client)/$(release)
-
-deploy_server_from_download:
-	cp downloads/$(jar_file) app-servers/
-
-deploy_app_from_download:
-	cp downloads/app.apk app-servers/external/app.apk
-
-deploy_all_from_download: deploy_server_from_download deploy_app_from_download
