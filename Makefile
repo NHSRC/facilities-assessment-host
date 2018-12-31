@@ -111,3 +111,11 @@ download_file:
 
 create_release: _make_binary
 	cp ../facilities-assessment-server/build/libs/$(jar_file) releases/$(client)/$(release)
+
+metabase_self_signed_key:
+	keytool -genkey -keyalg RSA \
+		-alias tomcat \
+		-keystore metabase/keystore.jks \
+		-storepass password \
+		-validity 3650 \
+		-keysize 2048
