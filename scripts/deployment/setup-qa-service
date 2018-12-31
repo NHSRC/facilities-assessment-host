@@ -31,12 +31,21 @@ chown ${USER}:${USER} ${START_QA}
 chmod 755 ${START_QA}
 echo "Generated ${START_QA} ..."
 
+
 echo '#!/bin/bash
-export MB_JETTY_PORT="4000"
+export MB_JETTY_SSL="true"
+export MB_JETTY_PORT="4001"
+export MB_JETTY_SSL_Port="4000"
+export MB_JETTY_SSL_Keystore="keystore.jks"
+export MB_JETTY_SSL_Keystore_Password="<ENTER-PASSWORD>"
 make start_metabase_server' > ${START_METABASE}
 chown ${USER}:${USER} ${START_METABASE}
 chmod 755 ${START_METABASE}
-echo "Generated ${START_METABASE} ..."
+echo "Generated ${START_METABASE} ... "
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo "!!! NOTE: Edit ${START_METABASE} and enter keystore password before executing !!!"
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo
 
 for SERVICE in "${SERVICES[@]}"
 do
