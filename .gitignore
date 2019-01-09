@@ -15,5 +15,10 @@ metabase/log/*.log
 metabase/backup/*
 **/metabase.jar
 **/metabase.db.trace.db
-**/metabase.db.mv.db.bak
 metabase/nhsrc
+app-servers/*.log
+metabase/*.db
+log
+tmp
+backup/metabase.db.mv.db_*
+metabase/metabase.jar
