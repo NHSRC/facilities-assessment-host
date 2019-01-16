@@ -47,6 +47,7 @@ test:
 # <db>
 recreate_db:
 	sudo -u $(postgres_user) psql postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$(database)' AND pid <> pg_backend_pid()"
+	-sudo -u $(postgres_user) psql postgres -c "create user nhsrc with password 'password'";
 	-sudo -u $(postgres_user) psql postgres -c 'drop database $(database)'
 	sudo -u $(postgres_user) psql postgres -c 'create database $(database) with owner nhsrc'
 	sudo -u $(postgres_user) psql $(database) -c 'create extension if not exists "uuid-ossp"'
