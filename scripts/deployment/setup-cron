@@ -10,7 +10,7 @@ SCRIPTS_DIR=$(dirname ${THIS_DIR})
 
 read -p "Name of backup directory in S3: " S3_BACKUP_DIRNAME
 read -p "HEALTHCHECK_BACKUP_UUID = " HEALTHCHECK_BACKUP_UUID
-read -p "Enable LetsEncrypt auto renewal (y/n) ? " ENABLE_AUTO_RENEW
+read -p "Enable LetsEncrypt auto renewal (y/n)? " ENABLE_AUTO_RENEW
 
 echo "PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin
 LD_LIBRARY_PATH=/usr/local/lib
@@ -22,7 +22,7 @@ echo "0 2 * * * ${SCRIPTS_DIR}/take-db-backup.sh && curl --retry 3 https://hc-pi
 
 if [ "$ENABLE_AUTO_RENEW" = "y" ]; then
     read -p "HEALTHCHECK_LETSENCRYPT_UUID = " HEALTHCHECK_LETSENCRYPT_UUID
-    echo "0 3 1,15 */2 * ${SCRIPTS_DIR}/renew-letsencrypt.sh && curl --retry 3 https://hc-ping.com/${HEALTHCHECK_LETSENCRYPT_UUID}" >> ${CRON_FILE}
+    echo "0 3 1,15 * * ${SCRIPTS_DIR}/renew-letsencrypt.sh && curl --retry 3 https://hc-ping.com/${HEALTHCHECK_LETSENCRYPT_UUID}" >> ${CRON_FILE}
 fi
 chown ${USER}:crontab ${CRON_FILE}
 chmod 600 ${CRON_FILE}
