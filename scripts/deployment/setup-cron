@@ -9,16 +9,21 @@ SCRIPTS_DIR=$(dirname ${THIS_DIR})
 #PROJECT_DIR=$(dirname ${SCRIPTS_DIR})
 
 read -p "Name of backup directory in S3: " S3_BACKUP_DIRNAME
-read -p "HEALTHCHECK_UUID = " HEALTHCHECK_UUID
+read -p "HEALTHCHECK_BACKUP_UUID = " HEALTHCHECK_BACKUP_UUID
+read -p "Enable LetsEncrypt auto renewal (y/n) ? " ENABLE_AUTO_RENEW
 
 echo "PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin
 LD_LIBRARY_PATH=/usr/local/lib
 S3_BACKUP_DIRNAME=${S3_BACKUP_DIRNAME}" > ${CRON_FILE}
 
 # 2am daily all dbs
-# make sure to set HEALTHCHECK_UUID when running this script
-echo "0 2 * * * ${SCRIPTS_DIR}/take-db-backup.sh && curl --retry 3 https://hc-ping.com/${HEALTHCHECK_UUID}" >> ${CRON_FILE}
-echo "#0 3 10 */2 * ${SCRIPTS_DIR}/renew-letsencrypt.sh && curl --retry 3 https://hc-ping.com/<UUID>" >> ${CRON_FILE}
+# make sure to set HEALTHCHECK_BACKUP_UUID when running this script
+echo "0 2 * * * ${SCRIPTS_DIR}/take-db-backup.sh && curl --retry 3 https://hc-ping.com/${HEALTHCHECK_BACKUP_UUID}" >> ${CRON_FILE}
+
+if [ "$ENABLE_AUTO_RENEW" = "y" ]; then
+    read -p "HEALTHCHECK_LETSENCRYPT_UUID = " HEALTHCHECK_LETSENCRYPT_UUID
+    echo "0 3 1,15 */2 * ${SCRIPTS_DIR}/renew-letsencrypt.sh && curl --retry 3 https://hc-ping.com/${HEALTHCHECK_LETSENCRYPT_UUID}" >> ${CRON_FILE}
+fi
 chown ${USER}:crontab ${CRON_FILE}
 chmod 600 ${CRON_FILE}
 echo "Generated ${CRON_FILE}"
