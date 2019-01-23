@@ -84,10 +84,10 @@ start_server:
 	$(call _start_server,$(database),80,443,false)
 
 start_qa_server:
-	$(call _start_server,$(qa_database),9001,9002,false)
+	$(call _start_server,$(qa_database),9001,9002,true)
 
 start_qa_server_nhsrc:
-	$(call _start_server,$(qa_database),80,443,false)
+	$(call _start_server,$(qa_database),80,443,true)
 
 # <daemon>
 start_daemon:
