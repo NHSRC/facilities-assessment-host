@@ -3,6 +3,7 @@ metabase_db_file=metabase.db.mv.db
 
 database := facilities_assessment
 qa_database := facilities_assessment_qa
+local_jss_database := facilities_assessment_cg
 nhsrc_port := 80
 Today_Day_Name := $(shell date +%a)
 postgres_user := $(shell id -un)
@@ -73,6 +74,9 @@ schedule_backup:
 
 backup_db:
 	pg_dump -Unhsrc -hlocalhost -d facilities_assessment > $(file)
+
+backup_jss_db:
+	pg_dump -Unhsrc -hlocalhost -d facilities_assessment_cg > $(file)
 # </db>
 
 # <service>
@@ -123,3 +127,9 @@ metabase_self_signed_key:
 		-storepass password \
 		-validity 3650 \
 		-keysize 2048
+
+# JSS Release
+migrate_jss_db:
+	$(call _restore_db,$(local_jss_database),db/backup/facilities_assessment_jss.sql)
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(local_jss_database) < releases/jss/0.8-upgrade-web/remove-invalid-checkpoints.sql
+	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(local_jss_database) < releases/jss/0.8-upgrade-web/checklist-reorganisation.sql
