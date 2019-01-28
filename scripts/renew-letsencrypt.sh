@@ -11,7 +11,7 @@ JKS_NAME=${P12_NAME}
 CERTBOT_OUTPUT=/tmp/crt.txt
 
 renew_ssl() {
-    systemctl stop fab
+    systemctl stop ${ENV_PREFIX}-fab
 
     certbot renew > ${CERTBOT_OUTPUT}
 
@@ -30,8 +30,8 @@ renew_ssl() {
     chown ${USER}:${USER} ${APP_DIR}/${P12_NAME}.p12
     chown ${USER}:${USER} ${METABASE_DIR}/${JKS_NAME}.jks
 
-    systemctl start fab
-    systemctl restart metabase
+    systemctl start ${ENV_PREFIX}-fab
+    systemctl restart ${ENV_PREFIX}-metabase
 }
 
 send_mail_notification() {
@@ -44,5 +44,6 @@ send_mail_notification() {
 }
 read -p "Enter fully qualified domain name: " FQDN
 read -p "keystore password: " PASSWORD
+read -p "environment name, ignore if production: " ENV_PREFIX
 renew_ssl
 send_mail_notification
