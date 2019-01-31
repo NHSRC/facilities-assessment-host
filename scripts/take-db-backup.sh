@@ -36,9 +36,12 @@ echo "[$(date)] Sync done!" &>> ${LOG_FILE}
 
 echo "[$(date)] Verifying postgres dump size..." &>> ${LOG_FILE}
 FILE_SIZE=$(stat --printf="%s" ${BACKUP_FILE})
-if [[ ${FILE_SIZE} == 0 || (-e ${BACKUP_FILE_YDAY} && ${FILE_SIZE} < $(stat --printf="%s" ${BACKUP_FILE_YDAY})) ]];
+YDAY_FILE_SIZE=$(stat --printf="%s" ${BACKUP_FILE_YDAY})
+DIFF=$(expr ${YDAY_FILE_SIZE} - ${FILE_SIZE})
+MAX_DIFF=2000000 #2mb
+if [[ ${FILE_SIZE} == 0 || -e ${BACKUP_FILE_YDAY} &&  "$DIFF" -gt "$MAX_DIFF" ]];
 then
-    echo "[$(date)] Backed up file's size ${FILE_SIZE} less than previous day" &>> ${LOG_FILE} ;
+    echo "[$(date)] Backed up file's size ${FILE_SIZE} less than previous day ${YDAY_FILE_SIZE}" &>> ${LOG_FILE} ;
     exit 1;
 else
     echo "[$(date)] File size ${FILE_SIZE} okay" &>> ${LOG_FILE}
