@@ -21,11 +21,23 @@ S3_BACKUP_DIRNAME=${S3_BACKUP_DIRNAME}" > ${CRON_FILE}
 echo "0 2 * * * ${SCRIPTS_DIR}/take-db-backup.sh && curl --retry 3 https://hc-ping.com/${HEALTHCHECK_BACKUP_UUID}" >> ${CRON_FILE}
 
 if [ "$ENABLE_AUTO_RENEW" = "y" ]; then
+    read -p "Enter fully qualified domain name: " FQDN
+    read -p "keystore password: " PASSWORD
     read -p "HEALTHCHECK_LETSENCRYPT_UUID = " HEALTHCHECK_LETSENCRYPT_UUID
-    echo "0 3 1,15 * * ${SCRIPTS_DIR}/renew-letsencrypt.sh && curl --retry 3 https://hc-ping.com/${HEALTHCHECK_LETSENCRYPT_UUID}" >> ${CRON_FILE}
+    ENV_PREFIX=
+    read -p "QA env? (y/n): " IS_QA
+    if [ "${IS_QA,,}" = "y" ]; then ENV_PREFIX="qa-"; fi
+
+    RENEWAL_CRON_FILE=/etc/cron.d/${ENV_PREFIX}renew-letsencrypt
+
+    echo "FQDN=${FQDN}" > ${RENEWAL_CRON_FILE}
+    echo "PASSWORD=${PASSWORD}" >> ${RENEWAL_CRON_FILE}
+    if [ "${IS_QA,,}" = "y" ]; then echo "ENV_PREFIX=\"qa-\"" >> ${RENEWAL_CRON_FILE}; fi
+
+    echo "0 3 1,15 * * ${SCRIPTS_DIR}/renew-letsencrypt.sh && curl --retry 3 https://hc-ping.com/${HEALTHCHECK_LETSENCRYPT_UUID}" >> ${RENEWAL_CRON_FILE}
 fi
 chown ${USER}:crontab ${CRON_FILE}
 chmod 600 ${CRON_FILE}
 echo "Generated ${CRON_FILE}"
 
-systemctl reload-or-restart cron
+systemctl reload-or-restart cron || (echo "Trying crond..." && systemctl reload-or-restart crond && echo "Restarted crond")
