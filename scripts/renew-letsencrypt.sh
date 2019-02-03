@@ -20,7 +20,7 @@ certbot renew &> ${CERTBOT_OUTPUT}
 
 grep -q "Cert not yet due for renewal" ${CERTBOT_OUTPUT}
 
-if [ $? -eq 0 ]; then exit 0; fi
+if [ $? -eq 0 ]; then systemctl start ${ENV_PREFIX}fab && exit 0; fi
 
 openssl pkcs12 -export -out ${APP_DIR}/${P12_NAME}.p12 \
 -passin pass:${PASSWORD} -passout pass:${PASSWORD} \
