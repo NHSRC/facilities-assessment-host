@@ -20,7 +20,7 @@ S3_BACKUP_DIRNAME=${S3_BACKUP_DIRNAME}" > ${CRON_FILE}
 # make sure to set HEALTHCHECK_BACKUP_UUID when running this script
 echo "0 2 * * * ${SCRIPTS_DIR}/take-db-backup.sh && curl --retry 3 https://hc-ping.com/${HEALTHCHECK_BACKUP_UUID}" >> ${CRON_FILE}
 
-if [ "$ENABLE_AUTO_RENEW" = "y" ]; then
+if [ "${ENABLE_AUTO_RENEW,,}" = "y" ]; then
     read -p "Enter fully qualified domain name: " FQDN
     read -p "keystore password: " PASSWORD
     read -p "HEALTHCHECK_LETSENCRYPT_UUID = " HEALTHCHECK_LETSENCRYPT_UUID
@@ -40,4 +40,4 @@ chown ${USER}:crontab ${CRON_FILE}
 chmod 600 ${CRON_FILE}
 echo "Generated ${CRON_FILE}"
 
-systemctl reload-or-restart cron || (echo "Trying crond..." && systemctl reload-or-restart crond && echo "Restarted crond")
+systemctl reload-or-restart cron || (echo "Trying crond instead..." && systemctl reload-or-restart crond && echo "Restarted crond")

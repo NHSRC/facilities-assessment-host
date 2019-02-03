@@ -4,8 +4,7 @@ set -e
 if ! [[ `command -v pip` ]]; then echo "Install 'pip'"; exit 1; fi
 if [[ $(id -u) -ne 0 ]] ; then echo "root/sudo privileges required" ; exit 1 ; fi
 
-./setup-service
-./setup-cron
+setup-prod-service
 
 read -p "db username: " DB_USER
 read -p "db password: " DB_PASS
@@ -17,3 +16,11 @@ pip install awscli --upgrade
 
 su app -c "aws configure"
 chown -R app:app /home/app
+
+read -p "Setup LetsEncrypt (y/n)? " SETUP_LETSENCRYPT
+if [ "${ENABLE_AUTO_RENEW,,}" = "y" ]; then setup-letsencrypt; fi
+echo
+echo
+echo
+echo "Setting up crontabs..."
+setup-crontabs

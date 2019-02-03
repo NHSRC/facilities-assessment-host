@@ -33,9 +33,12 @@ make start_metabase_server' > ${START_METABASE}
 chmod 755 ${START_METABASE}
 chown -R app:app ${START_METABASE}
 echo "Generated ${START_METABASE} ..."
-echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-echo "!!! NOTE: Edit ${START_METABASE} and enter keystore password before executing !!!"
-echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo
+echo
+echo
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+echo "!!!   NOTE: Edit ${START_METABASE} and enter keystore password before executing   !!!"
+echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
 echo
 
 for SERVICE in "${SERVICES[@]}"
