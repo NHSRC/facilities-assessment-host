@@ -14,42 +14,34 @@ CERTBOT_OUTPUT=/tmp/crt.txt
 
 # expecting ENV_PREFIX to come from the environment. If unset, prod will be assumed
 
-renew_ssl() {
-    systemctl stop ${ENV_PREFIX}fab
+systemctl stop ${ENV_PREFIX}fab
 
-    certbot renew &> ${CERTBOT_OUTPUT}
+certbot renew &> ${CERTBOT_OUTPUT}
 
-    grep -q "Cert not yet due for renewal" ${CERTBOT_OUTPUT}
+grep -q "Cert not yet due for renewal" ${CERTBOT_OUTPUT}
 
-    if [ $? -eq 0 ]; then exit 1; fi
+if [ $? -eq 0 ]; then exit 0; fi
 
-    openssl pkcs12 -export -out ${APP_DIR}/${P12_NAME}.p12 \
-    -passin pass:${PASSWORD} -passout pass:${PASSWORD} \
-    -in /etc/letsencrypt/live/${FQDN}/fullchain.pem \
-    -inkey /etc/letsencrypt/live/${FQDN}/privkey.pem \
-    -name tomcat
+openssl pkcs12 -export -out ${APP_DIR}/${P12_NAME}.p12 \
+-passin pass:${PASSWORD} -passout pass:${PASSWORD} \
+-in /etc/letsencrypt/live/${FQDN}/fullchain.pem \
+-inkey /etc/letsencrypt/live/${FQDN}/privkey.pem \
+-name tomcat
 
-    keytool -importkeystore -deststorepass ${PASSWORD} -destkeypass ${PASSWORD} \
-    -destkeystore ${METABASE_DIR}/${JKS_NAME}.jks \
-    -srckeystore ${APP_DIR}/${P12_NAME}.p12 \
-    -srcstoretype PKCS12 \
-    -srcstorepass ${PASSWORD} -alias tomcat
+keytool -importkeystore -deststorepass ${PASSWORD} -destkeypass ${PASSWORD} \
+-destkeystore ${METABASE_DIR}/${JKS_NAME}.jks \
+-srckeystore ${APP_DIR}/${P12_NAME}.p12 \
+-srcstoretype PKCS12 \
+-srcstorepass ${PASSWORD} -alias tomcat
 
-    chown ${USER}:${USER} ${APP_DIR}/${P12_NAME}.p12
-    chown ${USER}:${USER} ${METABASE_DIR}/${JKS_NAME}.jks
+chown ${USER}:${USER} ${APP_DIR}/${P12_NAME}.p12
+chown ${USER}:${USER} ${METABASE_DIR}/${JKS_NAME}.jks
 
-    systemctl start ${ENV_PREFIX}fab
-    systemctl restart ${ENV_PREFIX}metabase
-}
+systemctl start ${ENV_PREFIX}fab
+systemctl restart ${ENV_PREFIX}metabase
 
-send_mail_notification() {
-    aws ses send-email --from backupper@samanvayfoundation.org \
-    --to cron-alerts@samanvayfoundation.org \
-    --subject "LetsEncrypt Auto Renewal for ${FQDN}" \
-    --text `cat ${CERTBOT_OUTPUT}` \
-    --region us-east-1
-
-}
-
-renew_ssl
-send_mail_notification
+aws ses send-email --from backupper@samanvayfoundation.org \
+--to cron-alerts@samanvayfoundation.org \
+--subject "LetsEncrypt Auto Renewal for ${FQDN}" \
+--text `cat ${CERTBOT_OUTPUT}` \
+--region us-east-1
