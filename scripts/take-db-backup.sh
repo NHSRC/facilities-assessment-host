@@ -19,7 +19,7 @@ METABASE_BACKUP_FILE=${BACKUP_DIR}/metabase.db.mv.db_$(date +%a)
 S3_PATH=s3://samanvay/client-backups/${S3_BACKUP_DIRNAME}
 
 echo "[$(date)] Backing up postgres databases to '${BACKUP_FILE}' ..." &>> ${LOG_FILE}
-pg_dump -Unhsrc -hlocalhost -d facilities_assessment > ${BACKUP_FILE}
+pg_dump -Unhsrc -hlocalhost facilities_assessment > ${BACKUP_FILE}
 echo "[$(date)] Postgres backup complete" &>> ${LOG_FILE}
 
 echo "[$(date)] Backing up metabase to ${METABASE_BACKUP_FILE}" &>> ${LOG_FILE}
