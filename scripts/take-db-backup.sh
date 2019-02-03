@@ -37,7 +37,7 @@ echo "[$(date)] Sync done!" &>> ${LOG_FILE}
 echo "[$(date)] Verifying postgres dump size..." &>> ${LOG_FILE}
 FILE_SIZE=$(stat --printf="%s" ${BACKUP_FILE})
 YDAY_FILE_SIZE=$(stat --printf="%s" ${BACKUP_FILE_YDAY})
-DIFF=$(expr ${YDAY_FILE_SIZE} - ${FILE_SIZE})
+DIFF=$(( $YDAY_FILE_SIZE - $FILE_SIZE ))
 MAX_DIFF=2000000 #2mb
 if [[ ${FILE_SIZE} == 0 || -e ${BACKUP_FILE_YDAY} &&  "$DIFF" -gt "$MAX_DIFF" ]];
 then
