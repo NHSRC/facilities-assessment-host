@@ -1,1 +1,1 @@
-update checkpoint set means_of_verification = 'NA' where means_of_verification = '';
+update checkpoint set means_of_verification = 'NA' where means_of_verification = '' or means_of_verification is null;
