@@ -3,7 +3,7 @@
 if [[ $(id -u) -ne 0 ]] ; then echo "root/sudo privileges required" ; exit 1 ; fi
 
 USER=app
-CRON_FILE=/var/spool/cron/crontabs/${USER}
+TMP_CRON_FILE=/tmp/fab-cron
 THIS_DIR=$(readlink -f $(dirname "$0"))
 SCRIPTS_DIR=$(dirname ${THIS_DIR})
 #PROJECT_DIR=$(dirname ${SCRIPTS_DIR})
@@ -14,11 +14,11 @@ read -p "Enable LetsEncrypt auto renewal (y/n)? " ENABLE_AUTO_RENEW
 
 echo "PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin
 LD_LIBRARY_PATH=/usr/local/lib
-S3_BACKUP_DIRNAME=${S3_BACKUP_DIRNAME}" > ${CRON_FILE}
+S3_BACKUP_DIRNAME=${S3_BACKUP_DIRNAME}" > ${TMP_CRON_FILE}
 
 # 2am daily all dbs
 # make sure to set HEALTHCHECK_BACKUP_UUID when running this script
-echo "0 2 * * * ${SCRIPTS_DIR}/take-db-backup.sh && curl --retry 3 https://hc-ping.com/${HEALTHCHECK_BACKUP_UUID}" >> ${CRON_FILE}
+echo "0 2 * * * ${SCRIPTS_DIR}/take-db-backup.sh && curl --retry 3 https://hc-ping.com/${HEALTHCHECK_BACKUP_UUID}" >> ${TMP_CRON_FILE}
 
 if [ "${ENABLE_AUTO_RENEW,,}" = "y" ]; then
     read -p "Enter fully qualified domain name: " FQDN
@@ -28,16 +28,22 @@ if [ "${ENABLE_AUTO_RENEW,,}" = "y" ]; then
     read -p "QA env? (y/n): " IS_QA
     if [ "${IS_QA,,}" = "y" ]; then ENV_PREFIX="qa-"; fi
 
-    RENEWAL_CRON_FILE=/etc/cron.d/${ENV_PREFIX}renew-letsencrypt
+    echo "Configure aws for 'root'..."
+    aws configure
+    TMP_RENEWAL_CRON=/tmp/fab-lenc-cron
 
-    echo "FQDN=${FQDN}" > ${RENEWAL_CRON_FILE}
-    echo "PASSWORD=${PASSWORD}" >> ${RENEWAL_CRON_FILE}
-    if [ "${IS_QA,,}" = "y" ]; then echo "ENV_PREFIX=\"qa-\"" >> ${RENEWAL_CRON_FILE}; fi
+    # LetsEncrypt renewal job will be in root's crontab
+    crontab -l > ${TMP_RENEWAL_CRON}
 
-    echo "0 3 1,15 * * ${SCRIPTS_DIR}/renew-letsencrypt.sh && curl --retry 3 https://hc-ping.com/${HEALTHCHECK_LETSENCRYPT_UUID}" >> ${RENEWAL_CRON_FILE}
+    echo "FQDN=${FQDN}" >> ${TMP_RENEWAL_CRON}
+    echo "PASSWORD=${PASSWORD}" >> ${TMP_RENEWAL_CRON}
+    if [ "${IS_QA,,}" = "y" ]; then echo "ENV_PREFIX=\"qa-\"" >> ${TMP_RENEWAL_CRON}; fi
+
+    echo "0 3 1,15 * * ${SCRIPTS_DIR}/renew-letsencrypt.sh && curl --retry 3 https://hc-ping.com/${HEALTHCHECK_LETSENCRYPT_UUID}" >> ${TMP_RENEWAL_CRON}
+
+    crontab < ${TMP_RENEWAL_CRON}
 fi
-chown ${USER}:crontab ${CRON_FILE}
-chmod 600 ${CRON_FILE}
-echo "Generated ${CRON_FILE}"
+
+su ${USER} -c "crontab < ${TMP_CRON_FILE}"
 
 systemctl reload-or-restart cron || (echo "Trying crond instead..." && systemctl reload-or-restart crond && echo "Restarted crond")
