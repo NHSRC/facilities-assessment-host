@@ -22,3 +22,5 @@ log
 tmp
 backup/metabase.db.mv.db_*
 metabase/metabase.jar
+app-servers/*.bak
+metabase/*.bak

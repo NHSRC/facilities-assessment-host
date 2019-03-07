@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# Generated files: start-fab.sh, start-metabase.sh,
 set -e
 
 if [[ $(id -u) -ne 0 ]] ; then echo "root/sudo privileges required" ; exit 1 ; fi

@@ -1,14 +1,10 @@
 jar_file=facilities-assessment-server-0.0.1-SNAPSHOT.jar
-metabase_db_file=metabase.db.mv.db
 
 database := facilities_assessment
 qa_database := facilities_assessment_qa
-local_jss_database := facilities_assessment_cg
-nhsrc_port := 80
-Today_Day_Name := $(shell date +%a)
+prod_dir := /home/app/facilities-assessment-host
+qa_dir := /home/app/qa-server
 postgres_user := $(shell id -un)
-nhsrc_prod_server=10.31.37.23
-nhsrc_slave_server=10.31.37.24
 
 help: ##		Show this help.
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
@@ -19,6 +15,10 @@ endef
 
 define _start_daemon
 	cd app-servers && nohup java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 --fa.secure=$4
+endef
+
+define _deploy_bash
+	ssh $1 "cd $(prod_dir) && git pull"
 endef
 
 define _stop_daemon
@@ -32,20 +32,6 @@ endef
 define _execute_on_nhsrc_prod
 	ssh gunak-main "cd /home/nhsrc1/facilities-assessment-host && make $1"
 endef
-
-test:
-	@echo $(Today_Day_Name)
-
-# <db>
-recreate_schema:
-	-psql -Unhsrc postgres -c 'drop database $(db)';
-	-psql -Unhsrc postgres -c 'create database $(db) with owner nhsrc';
-	-psql $(db) -c 'create extension if not exists "uuid-ossp"';
-	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$(db) -schemas=public clean
-	$(call _flyway_migrate,$(db))
-
-schedule_backup:
-	sudo sh schedule-backup.sh
 
 backup_db:
 	pg_dump -Unhsrc -hlocalhost -d facilities_assessment > $(file)
@@ -79,12 +65,8 @@ start_metabase_server:
 	cd metabase && java -Dlog4j.configuration=file:log4j.properties -jar metabase.jar >> log/metabase.log 2>&1
 # </metabase>
 
-# <metabase_db>
-pull_jss_metabase_db:
-	scp nhsrc@192.168.0.155:/home/nhsrc/facilities-assessment-host/metabase/$(metabase_db_file) metabase/backup/jssprod/
-# </metabase_db>
-
 start_all_nhsrc: start_daemon_nhsrc start_metabase
+
 stop_all_nhsrc: stop_daemon_nhsrc stop_metabase
 	ps -ef | grep java
 
@@ -95,3 +77,6 @@ metabase_self_signed_key:
 		-storepass password \
 		-validity 3650 \
 		-keysize 2048
+
+deploy_bash_to_jss:
+	$(call _deploy_bash,igunatmac)
