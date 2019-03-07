@@ -1,1 +1,0 @@
-DELETE from checkpoint WHERE name = 'Maximum';

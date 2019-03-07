@@ -1,1 +1,0 @@
-update checklist set last_modified_date = current_timestamp where assessment_tool_id in (10, 11, 12);

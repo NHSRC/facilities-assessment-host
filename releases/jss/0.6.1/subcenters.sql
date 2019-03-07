@@ -1,6 +1,0 @@
-INSERT INTO facility_type (name) VALUES ('Sub-Centre');
-INSERT INTO facility (name, district_id, facility_type_id) VALUES ('SC Ledhra', (SELECT id from district WHERE name = 'Anuppur'), (SELECT id from facility_type WHERE name = 'Sub-Centre'));
-INSERT INTO facility (name, district_id, facility_type_id) VALUES ('SC Gonda', (SELECT id from district WHERE name = 'Anuppur'), (SELECT id from facility_type WHERE name = 'Sub-Centre'));
-INSERT INTO facility (name, district_id, facility_type_id) VALUES ('SC Ahlavar', (SELECT id from district WHERE name = 'Anuppur'), (SELECT id from facility_type WHERE name = 'Sub-Centre'));
-INSERT INTO facility (name, district_id, facility_type_id) VALUES ('CHC Karpa', (SELECT id from district WHERE name = 'Anuppur'), (SELECT id from facility_type WHERE name = 'Community Health Center'));
-INSERT INTO facility (name, district_id, facility_type_id) VALUES ('PHC Khamrod', (SELECT id from district WHERE name = 'Anuppur'), (SELECT id from facility_type WHERE name = 'Primary Health Center'));

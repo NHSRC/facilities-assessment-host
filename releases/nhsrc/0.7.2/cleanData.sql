@@ -1,1 +1,0 @@
-DELETE from assessment_tool_mode WHERE id not in (SELECT assessment_tool_mode_id from assessment_tool);

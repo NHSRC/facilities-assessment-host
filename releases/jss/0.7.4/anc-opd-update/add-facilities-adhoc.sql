@@ -1,1 +1,0 @@
-insert into facility (name, district_id, facility_type_id) values ('PHC Kendra', (select id from district where name = 'Bilaspur'), (select id from facility_type where name = 'Primary Health Center'));

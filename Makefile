@@ -25,15 +25,6 @@ define _stop_daemon
 	-pkill -f 'database=$1'
 endef
 
-define _restore_db
-	make recreate_db database=$1
-	sudo -u $(postgres_user) psql $1 < $2
-endef
-
-define _flyway_migrate
-	flyway -user=nhsrc -password=password -url=jdbc:postgresql://localhost:5432/$1 -schemas=public -locations=filesystem:../facilities-assessment-server/src/main/resources/db/migration/ migrate
-endef
-
 define _backup_db
 	sudo -u $(postgres_user) pg_dump $1 > db/backup/$1_$2_production.sql
 endef
@@ -46,22 +37,6 @@ test:
 	@echo $(Today_Day_Name)
 
 # <db>
-recreate_db:
-	sudo -u $(postgres_user) psql postgres -c "SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '$(database)' AND pid <> pg_backend_pid()"
-	-sudo -u $(postgres_user) psql postgres -c "create user nhsrc with password 'password'";
-	-sudo -u $(postgres_user) psql postgres -c 'drop database $(database)'
-	sudo -u $(postgres_user) psql postgres -c 'create database $(database) with owner nhsrc'
-	sudo -u $(postgres_user) psql $(database) -c 'create extension if not exists "uuid-ossp"'
-
-restore_prod_db:
-	$(call _restore_db,$(database),$(file))
-
-restore_qa_db: ##	file=relative file location; postgres_user=optional, default is current user
-	$(call _restore_db,$(qa_database),$(file))
-
-create_qa_db:
-	make recreate_db database=$(qa_database) postgres_user=postgres
-
 recreate_schema:
 	-psql -Unhsrc postgres -c 'drop database $(db)';
 	-psql -Unhsrc postgres -c 'create database $(db) with owner nhsrc';
@@ -113,13 +88,6 @@ start_all_nhsrc: start_daemon_nhsrc start_metabase
 stop_all_nhsrc: stop_daemon_nhsrc stop_metabase
 	ps -ef | grep java
 
-download_file:
-	rm downloads/$(outputfile)
-	cd downloads && wget -c --retry-connrefused --tries=0 -O $(outputfile) $(url)
-
-create_release: _make_binary
-	cp ../facilities-assessment-server/build/libs/$(jar_file) releases/$(client)/$(release)
-
 metabase_self_signed_key:
 	keytool -genkey -keyalg RSA \
 		-alias tomcat \
@@ -127,9 +95,3 @@ metabase_self_signed_key:
 		-storepass password \
 		-validity 3650 \
 		-keysize 2048
-
-# JSS Release
-migrate_jss_db:
-	$(call _restore_db,$(local_jss_database),db/backup/facilities_assessment_jss.sql)
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(local_jss_database) < releases/jss/0.8-upgrade-web/remove-invalid-checkpoints.sql
-	psql -v ON_ERROR_STOP=1 --echo-all -Unhsrc $(local_jss_database) < releases/jss/0.8-upgrade-web/checklist-reorganisation.sql

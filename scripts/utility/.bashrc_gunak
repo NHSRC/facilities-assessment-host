@@ -1,0 +1,2 @@
+alias qa='cd /home/app/qa-server/facilities-assessment-host'
+alias prod='cd /home/app/facilities-assessment-host'
