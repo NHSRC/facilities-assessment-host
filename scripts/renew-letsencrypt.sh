@@ -32,7 +32,7 @@ keytool -importkeystore -deststorepass ${PASSWORD} -destkeypass ${PASSWORD} \
 -destkeystore ${METABASE_DIR}/${JKS_NAME}.jks \
 -srckeystore ${APP_DIR}/${P12_NAME}.p12 \
 -srcstoretype PKCS12 \
--srcstorepass ${PASSWORD} -alias tomcat
+-srcstorepass ${PASSWORD} -alias "tomcat" -noprompt
 
 chown ${USER}:${USER} ${APP_DIR}/${P12_NAME}.p12
 chown ${USER}:${USER} ${METABASE_DIR}/${JKS_NAME}.jks
