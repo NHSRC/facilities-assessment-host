@@ -1,2 +1,3 @@
 alias qa='cd /home/app/qa-server/facilities-assessment-host'
 alias prod='cd /home/app/facilities-assessment-host'
+alias gunakpql='psql -h localhost -d facilities_assessment_qa nhsrc'
