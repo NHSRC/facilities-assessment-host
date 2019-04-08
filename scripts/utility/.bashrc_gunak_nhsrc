@@ -1,0 +1,2 @@
+export http_proxy=http://10.31.37.253:3128
+export https_proxy=$http_proxy

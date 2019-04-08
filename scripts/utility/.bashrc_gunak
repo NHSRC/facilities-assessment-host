@@ -3,4 +3,4 @@ export GUNAK_HOST_QA_DIR=/home/app/qa-server/facilities-assessment-host
 
 alias qa='cd $GUNAK_HOST_QA_DIR'
 alias prod='cd $GUNAK_HOST_DIR'
-alias gunakpql='psql -h localhost -d facilities_assessment_qa nhsrc'
+alias gunakpsql='psql -h localhost -d facilities_assessment_qa nhsrc'
