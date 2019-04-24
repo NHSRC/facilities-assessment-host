@@ -36,6 +36,9 @@ endef
 backup_db:
 	pg_dump -Unhsrc -hlocalhost -d facilities_assessment > $(file)
 
+backup_nhsrc_qa_db:
+	pg_dump -Unhsrc -hlocalhost -d facilities_assessment_qa > ./backup/facilities_assessment_$(date +%a).sql
+
 backup_jss_db:
 	pg_dump -Unhsrc -hlocalhost -d facilities_assessment_cg > $(file)
 # </db>
