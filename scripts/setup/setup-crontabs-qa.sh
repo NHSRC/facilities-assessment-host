@@ -11,7 +11,7 @@ SCRIPTS_DIR=$(dirname ${THIS_DIR})
 read -p "Enable LetsEncrypt auto renewal (y/n)? " ENABLE_AUTO_RENEW
 
 echo "PATH=/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin
-LD_LIBRARY_PATH=/usr/local/lib
+LD_LIBRARY_PATH=/usr/local/lib" > ${TMP_CRON_FILE}
 
 if [ "${ENABLE_AUTO_RENEW,,}" = "y" ]; then
     read -p "Enter fully qualified domain name: " FQDN

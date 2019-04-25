@@ -2,12 +2,14 @@ jar_file=facilities-assessment-server-0.0.1-SNAPSHOT.jar
 
 database := facilities_assessment
 qa_database := facilities_assessment_qa
-prod_dir := /home/app/facilities-assessment-host
-qa_dir := /home/app/qa-server
 postgres_user := $(shell id -un)
 
 help: ##		Show this help.
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
+
+define _set_host_dir
+	$(eval host_dir := /home/app/$1/facilities-assessment-host)
+endef
 
 define _start_server
     cd app-servers && java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 --fa.secure=$4
@@ -68,10 +70,7 @@ start_metabase_server:
 	cd metabase && java -Dlog4j.configuration=file:log4j.properties -jar metabase.jar >> log/metabase.log 2>&1
 # </metabase>
 
-start_all_nhsrc: start_daemon_nhsrc start_metabase
-
-stop_all_nhsrc: stop_daemon_nhsrc stop_metabase
-	ps -ef | grep java
+start_all_nhsrc: start_daemon start_metabase
 
 metabase_self_signed_key:
 	keytool -genkey -keyalg RSA \
@@ -83,3 +82,25 @@ metabase_self_signed_key:
 
 deploy_bash_to_jss:
 	$(call _deploy_bash,igunatmac)
+
+# UPDATE HOST CODE
+define _update_host
+	$(call _set_host_dir,$1)
+	ssh $2 "cd $(host_dir) && git pull"
+endef
+
+update_host_nhsrc_prod:
+	$(call _update_post,,gunak-main)
+
+update_host_nhsrc_qa:
+	$(call _update_post,qa-server,gunak-other)
+
+
+# RUN ADHOC COMMAND REMOTE SERVER
+define _run_adhoc
+	$(call _update_host,$1,$2)
+	ssh $2 "$3"
+endef
+
+run_adhoc_nhsrc_qa:
+	$(call _run_adhoc,qa-server,gunak-other,$(command))
