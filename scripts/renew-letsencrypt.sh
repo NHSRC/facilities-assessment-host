@@ -15,7 +15,7 @@ CERTBOT_OUTPUT=/tmp/crt.txt
 echo "env var PROJECT_DIR set to ${PROJECT_DIR}"
 
 # expecting ENV_PREFIX to come from the environment. If unset, prod will be assumed
-
+echo "Stopping ${ENV_PREFIX}fab"
 systemctl stop ${ENV_PREFIX}fab
 
 certbot renew &> ${CERTBOT_OUTPUT}
@@ -42,6 +42,7 @@ chown ${USER}:${USER} ${METABASE_DIR}/${JKS_NAME}.jks
 systemctl start ${ENV_PREFIX}fab
 systemctl restart ${ENV_PREFIX}metabase
 
+# Tell LetsEncrypt that Certificate has been renewed so that it would not send email notification to us
 aws ses send-email --from backupper@samanvayfoundation.org \
 --to cron-alerts@samanvayfoundation.org \
 --subject "LetsEncrypt Auto Renewal for ${FQDN}" \
