@@ -5,7 +5,7 @@ if [[ -z "${FQDN}" ]]; then echo "env var \$FQDN is unset" ; exit 1; fi
 if [[ -z "${PASSWORD}" ]]; then echo "env var \$PASSWORD (keystore) is unset" ; exit 1; fi
 
 USER=app
-PROJECT_DIR=$(dirname $(readlink -f $(dirname "$0")))
+PROJECT_DIR=$(readlink -f $(dirname "$0"))
 APP_DIR=${PROJECT_DIR}/app-servers
 METABASE_DIR=${PROJECT_DIR}/metabase
 P12_NAME='keystore'
