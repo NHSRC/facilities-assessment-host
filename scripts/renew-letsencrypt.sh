@@ -12,6 +12,8 @@ P12_NAME='keystore'
 JKS_NAME=${P12_NAME}
 CERTBOT_OUTPUT=/tmp/crt.txt
 
+echo "env var PROJECT_DIR set to \$PROJECT_DIR"
+
 # expecting ENV_PREFIX to come from the environment. If unset, prod will be assumed
 
 systemctl stop ${ENV_PREFIX}fab

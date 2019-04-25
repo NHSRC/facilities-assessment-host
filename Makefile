@@ -99,7 +99,7 @@ update_host_nhsrc_qa:
 # RUN ADHOC COMMAND REMOTE SERVER
 define _run_adhoc
 	$(call _update_host,$1,$2)
-	ssh $2 "$3"
+	ssh $2 "cd $(host_dir) && $3"
 endef
 
 run_adhoc_nhsrc_qa:
