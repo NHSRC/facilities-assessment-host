@@ -46,5 +46,5 @@ systemctl restart ${ENV_PREFIX}metabase
 aws ses send-email --from backupper@samanvayfoundation.org \
 --to cron-alerts@samanvayfoundation.org \
 --subject "LetsEncrypt Auto Renewal for ${FQDN}" \
---text `cat ${CERTBOT_OUTPUT}` \
+--text "$(cat ${CERTBOT_OUTPUT})" \
 --region us-east-1
