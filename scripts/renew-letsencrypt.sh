@@ -18,7 +18,7 @@ echo "env var PROJECT_DIR set to ${PROJECT_DIR}"
 echo "Stopping ${ENV_PREFIX}fab"
 systemctl stop ${ENV_PREFIX}fab
 
-certbot renew &> ${CERTBOT_OUTPUT}
+certbot renew 2>&1 | tee ${CERTBOT_OUTPUT}
 
 grep -q "Cert not yet due for renewal" ${CERTBOT_OUTPUT}
 
