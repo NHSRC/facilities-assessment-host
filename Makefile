@@ -104,3 +104,6 @@ endef
 
 run_adhoc_nhsrc_qa:
 	$(call _run_adhoc,qa-server,gunak-other,$(command))
+
+deploy_metabase_nhsrc_prod:
+	scp metabase/metabase.db.mv.db gunak-main:/home/app/facilities-assessment-host/metabase/
