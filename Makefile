@@ -16,7 +16,8 @@ define _start_server
 endef
 
 define _start_server_background
-    cd app-servers && java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 --fa.secure=$4 --cron.main="0/3 * * * * ?"
+	echo "Using API Key - $(NIN_API_KEY)"
+    cd app-servers && java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 --fa.secure=$4 --cron.main="0/3 * * * * ?" --nin.apiKey=$(NIN_API_KEY)
 endef
 
 define _start_daemon
