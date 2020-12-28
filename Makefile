@@ -16,7 +16,7 @@ define _start_server
 endef
 
 define _start_server_background
-    cd app-servers && java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 --fa.secure=$4 --cron.assessmentScoring="0/3 * * * * ?"
+    cd app-servers && java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 --fa.secure=$4 --cron.main="0/3 * * * * ?"
 endef
 
 define _start_daemon
