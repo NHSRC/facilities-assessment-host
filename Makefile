@@ -15,6 +15,10 @@ define _start_server
     cd app-servers && java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 --fa.secure=$4
 endef
 
+define _start_server_background
+    cd app-servers && java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 --fa.secure=$4 --cron.assessmentScoring="0/3 * * * * ?"
+endef
+
 define _start_daemon
 	cd app-servers && nohup java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 --fa.secure=$4
 endef
@@ -53,6 +57,9 @@ start_qa_server:
 	$(call _start_server,$(qa_database),9001,9002,true)
 
 start_qa_server_nhsrc:
+	$(call _start_server,$(qa_database),80,443,true)
+
+start_qa_server_background_nhsrc:
 	$(call _start_server,$(qa_database),80,443,true)
 
 # <daemon>

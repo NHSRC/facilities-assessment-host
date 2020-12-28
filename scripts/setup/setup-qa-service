@@ -21,11 +21,13 @@ fi
 read -p "FA_BUGSNAG_API_KEY=" FA_BUGSNAG_API_KEY
 read -p "FA_ENV [qa|prod] =" FA_ENV
 read -p "FA_IMPLEMENTATION_NAME [JSS|NHSRC] =" FA_IMPLEMENTATION_NAME
+read -p "FA_NIN_API_KEY =" FA_NIN_API_KEY
 
 echo "#!/bin/bash
 export FA_BUGSNAG_API_KEY=${FA_BUGSNAG_API_KEY}
 export FA_ENV=${FA_ENV}
 export FA_IMPLEMENTATION_NAME=${FA_IMPLEMENTATION_NAME}
+export FA_NIN_API_KEY=${FA_NIN_API_KEY}
 make start_qa_server" > ${START_QA}
 chown ${USER}:${USER} ${START_QA}
 chmod 755 ${START_QA}
