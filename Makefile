@@ -17,7 +17,7 @@ endef
 
 define _start_server_background
 	echo "Using API Key - $(NIN_API_KEY)"
-    cd app-servers && java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 --fa.secure=$4 --cron.main="0/3 * * * * ?" --nin.apiKey=$(NIN_API_KEY)
+    cd app-servers && FA_ENV=qa FA_IMPLEMENTATION_NAME=$5 java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 --fa.secure=$4 --cron.main="0/3 * * * * ?" --nin.apiKey=$(NIN_API_KEY)
 endef
 
 define _start_daemon
@@ -61,7 +61,7 @@ start_qa_server_nhsrc:
 	$(call _start_server,$(qa_database),80,443,true)
 
 start_qa_server_background_nhsrc:
-	$(call _start_server_background,$(qa_database),80,443,true)
+	$(call _start_server_background,$(qa_database),80,443,true,nhsrc)
 
 # <daemon>
 start_daemon:
