@@ -61,7 +61,7 @@ start_qa_server_nhsrc:
 	$(call _start_server,$(qa_database),80,443,true)
 
 start_qa_server_background_nhsrc:
-	$(call _start_server,$(qa_database),80,443,true)
+	$(call _start_server_background,$(qa_database),80,443,true)
 
 # <daemon>
 start_daemon:
