@@ -7,7 +7,7 @@ P12_NAME='keystore'
 JKS_NAME=${P12_NAME}
 
 setup() {
-    systemctl stop ${ENV_PREFIX}fab
+    systemctl stop ${PREFIX}fab
 
     openssl pkcs12 -export -out ${APP_DIR}/${P12_NAME}.p12 \
         -passin pass:${PASSWORD} -passout pass:${PASSWORD} \
@@ -24,12 +24,12 @@ setup() {
     chown ${USER}:${USER} ${APP_DIR}/${P12_NAME}.p12
     chown ${USER}:${USER} ${METABASE_DIR}/${JKS_NAME}.jks
 
-    systemctl start ${ENV_PREFIX}fab
-    systemctl restart ${ENV_PREFIX}metabase
+    systemctl start ${PREFIX}fab
+    systemctl restart ${PREFIX}metabase
 }
 
 read -p "Enter fully qualified domain name: " FQDN
 read -p "keystore password: " PASSWORD
-read -p "environment name, ignore if production: " _ENV_PREFIX
-ENV_PREFIX="${_ENV_PREFIX}-"
+read -p "environment name, ignore if production: " ENV_PREFIX
+PREFIX="${ENV_PREFIX}-"
 setup
