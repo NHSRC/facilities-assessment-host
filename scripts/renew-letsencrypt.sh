@@ -10,7 +10,8 @@ APP_DIR=${PROJECT_DIR}/app-servers
 METABASE_DIR=${PROJECT_DIR}/metabase
 P12_NAME='keystore'
 JKS_NAME=${P12_NAME}
-LOG_FILE=/tmp/crt.txt
+CERTBOT_OUTPUT=/tmp/crt.txt
+LOG_FILE=/tmp/renew-le.log
 PATH=$PATH:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/opt/jdk1.8.0_192/bin:/opt/jdk1.8.0_192/jre/bin
 
 echo "env var PROJECT_DIR set to ${PROJECT_DIR}"
@@ -19,9 +20,9 @@ echo "env var PROJECT_DIR set to ${PROJECT_DIR}"
 echo "Stopping ${ENV_PREFIX}fab"
 systemctl stop ${ENV_PREFIX}fab
 
-certbot renew &> ${LOG_FILE}
+certbot renew &> ${CERTBOT_OUTPUT}
 
-grep -q "Cert not yet due for renewal" ${LOG_FILE}
+grep -q "Cert not yet due for renewal" ${CERTBOT_OUTPUT}
 
 if [ $? -eq 0 ]; then systemctl start ${ENV_PREFIX}fab && exit 0; fi
 
