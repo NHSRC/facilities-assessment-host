@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 
 if [[ $(id -u) -ne 0 ]] ; then echo "root/sudo privileges required" ; exit 1 ; fi
-if [[ -z "${FQDN}" ]]; then echo "env var \$FQDN is unset" ; exit 1; fi
-if [[ -z "${PASSWORD}" ]]; then echo "env var \$PASSWORD (keystore) is unset" ; exit 1; fi
+if [[ -z "${FQDN}" ]]; then echo "env var \$FQDN is not set" ; exit 1; fi
+if [[ -z "${PASSWORD}" ]]; then echo "env var \$PASSWORD (keystore) is not set" ; exit 1; fi
+if [[ -z "${ENV_PREFIX}" ]]; then echo "env var \$ENV_PREVIX (keystore) is not set" ; exit 1; fi
 
 USER=app
 PROJECT_DIR=$(dirname $(readlink -f $(dirname "$0")))
