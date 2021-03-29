@@ -16,6 +16,7 @@ define _start_server
 endef
 
 define _start_server_background
+	echo "Using API Key - $(NIN_API_KEY)"
 ifndef NIN_API_KEY
 	$(error ERROR: NIN_API_KEY not provided)
 endif
