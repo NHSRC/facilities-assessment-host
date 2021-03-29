@@ -17,10 +17,6 @@ endef
 
 define _start_server_background
 	echo "Using API Key - $(NIN_API_KEY)"
-ifndef NIN_API_KEY
-	$(error ERROR: NIN_API_KEY not provided)
-endif
-	echo "Using API Key - $(NIN_API_KEY)"
     cd app-servers && FA_ENV=qa FA_IMPLEMENTATION_NAME=$5 java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 --fa.secure=$4 --cron.main="0/3 * * * * ?" --nin.apiKey=$(NIN_API_KEY)
 endef
 
