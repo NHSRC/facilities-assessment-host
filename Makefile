@@ -52,7 +52,7 @@ backup_jss_db:
 
 # <service>
 start_server:
-	$(call _start_server,$(database),80,443,false)
+	$(call _start_server,$(database),80,443,false,)
 
 start_qa_server:
 	$(call _start_server,$(qa_database),9001,9002,true)
@@ -118,3 +118,6 @@ deploy_metabase_nhsrc_prod:
 
 deploy_metabase_nhsrc_qa:
 	scp metabase/metabase.db.mv.db gunak-other:/home/app/qa-server/facilities-assessment-host/metabase/
+
+download_metabase_nhsrc_source:
+	scp gunak-main:/home/app/facilities-assessment-host/metabase/metabase.db.mv.db metabase/source-metabase.db.mv.db
