@@ -12,7 +12,7 @@ define _set_host_dir
 endef
 
 define _start_server
-    cd app-servers && java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 --fa.secure=$4
+    cd app-servers && java -jar $(jar_file) --database=$1 --server.http.port=$2 --server.port=$3 --fa.secure=$4 --database.host=$5
 endef
 
 define _start_server_background
@@ -51,14 +51,14 @@ backup_jss_db:
 # </db>
 
 # <service>
-start_server:
-	$(call _start_server,$(database),80,443,false,)
+start_server_nhsrc_prod:
+	$(call _start_server,$(database),80,443,false,10.31.37.24)
 
 start_qa_server:
-	$(call _start_server,$(qa_database),9001,9002,true)
+	$(call _start_server,$(qa_database),9001,9002,true,xx.xx.xx.xx)
 
 start_qa_server_nhsrc:
-	$(call _start_server,$(qa_database),80,443,true)
+	$(call _start_server,$(qa_database),80,443,true,xx.xx.xx.xx)
 
 start_qa_server_background_nhsrc:
 	$(call _start_server_background,$(qa_database),80,443,true,nhsrc)
