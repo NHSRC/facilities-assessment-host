@@ -52,7 +52,7 @@ backup_jss_db:
 
 # <service>
 start_server_nhsrc_prod:
-	$(call _start_server,$(database),80,443,false,10.31.37.24)
+	$(call _start_server,facilities_assessment_qa,80,443,false,10.31.37.24)
 
 start_qa_server:
 	$(call _start_server,$(qa_database),9001,9002,true,xx.xx.xx.xx)
